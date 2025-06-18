@@ -2,7 +2,25 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Button, Select, Switch, Space, Card, message } from 'antd';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -23,6 +41,106 @@ interface FormBuilderProps {
   loading?: boolean;
 }
 
+interface SortableQuestionProps {
+  question: Question;
+  index: number;
+  updateQuestion: (id: string, updates: Partial<Question>) => void;
+  deleteQuestion: (id: string) => void;
+}
+
+const SortableQuestion: React.FC<SortableQuestionProps> = ({
+  question,
+  index,
+  updateQuestion,
+  deleteQuestion
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: question.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <Card
+        size="small"
+        className="mb-4"
+        title={
+          <div className="flex items-center gap-2">
+            <div {...listeners} className="cursor-move">
+              <DragOutlined className="text-gray-400" />
+            </div>
+            <QuestionCircleOutlined />
+            <span>Question {index + 1}</span>
+          </div>
+        }
+        extra={
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => deleteQuestion(question.id)}
+          />
+        }
+      >
+        <Space direction="vertical" className="w-full">
+          <div>
+            <label className="block text-sm font-medium mb-1">Question Type</label>
+            <Select
+              value={question.type}
+              onChange={(value) => updateQuestion(question.id, { type: value })}
+              className="w-full"
+            >
+              <Option value="text">Text Response</Option>
+              <Option value="mcq">Multiple Choice</Option>
+              <Option value="rating">Rating (1-5)</Option>
+            </Select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Question Text</label>
+            <TextArea
+              value={question.question}
+              onChange={(e) => updateQuestion(question.id, { question: e.target.value })}
+              placeholder="Enter your question"
+              rows={2}
+            />
+          </div>
+
+          {question.type === 'mcq' && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Options (one per line)</label>
+              <TextArea
+                value={question.options?.join('\n') || ''}
+                onChange={(e) => updateQuestion(question.id, { 
+                  options: e.target.value.split('\n').filter(opt => opt.trim()) 
+                })}
+                placeholder="Option 1&#10;Option 2&#10;Option 3"
+                rows={4}
+              />
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={question.required}
+              onChange={(checked) => updateQuestion(question.id, { required: checked })}
+            />
+            <span className="text-sm">Required question</span>
+          </div>
+        </Space>
+      </Card>
+    </div>
+  );
+};
+
 const FormBuilder: React.FC<FormBuilderProps> = ({
   visible,
   onCancel,
@@ -32,6 +150,13 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
 }) => {
   const [formInstance] = Form.useForm();
   const [questions, setQuestions] = useState<Question[]>([]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     if (visible) {
@@ -69,20 +194,23 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
     setQuestions(questions.filter(q => q.id !== id));
   };
 
-  const onDragEnd = (result: any) => {
-    if (!result.destination) return;
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-    const items = Array.from(questions);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    if (active.id !== over?.id) {
+      setQuestions((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over?.id);
 
-    // Update order numbers
-    const updatedItems = items.map((item, index) => ({
-      ...item,
-      order: index + 1
-    }));
-
-    setQuestions(updatedItems);
+        const newItems = arrayMove(items, oldIndex, newIndex);
+        
+        // Update order numbers
+        return newItems.map((item, index) => ({
+          ...item,
+          order: index + 1
+        }));
+      });
+    }
   };
 
   const handleSubmit = async () => {
@@ -108,76 +236,6 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
       message.error('Please fill in all required fields');
     }
   };
-
-  const renderQuestionForm = (question: Question, index: number) => (
-    <Card
-      key={question.id}
-      size="small"
-      className="mb-4"
-      title={
-        <div className="flex items-center gap-2">
-          <DragOutlined className="cursor-move text-gray-400" />
-          <QuestionCircleOutlined />
-          <span>Question {index + 1}</span>
-        </div>
-      }
-      extra={
-        <Button
-          type="text"
-          danger
-          icon={<DeleteOutlined />}
-          onClick={() => deleteQuestion(question.id)}
-        />
-      }
-    >
-      <Space direction="vertical" className="w-full">
-        <div>
-          <label className="block text-sm font-medium mb-1">Question Type</label>
-          <Select
-            value={question.type}
-            onChange={(value) => updateQuestion(question.id, { type: value })}
-            className="w-full"
-          >
-            <Option value="text">Text Response</Option>
-            <Option value="mcq">Multiple Choice</Option>
-            <Option value="rating">Rating (1-5)</Option>
-          </Select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Question Text</label>
-          <TextArea
-            value={question.question}
-            onChange={(e) => updateQuestion(question.id, { question: e.target.value })}
-            placeholder="Enter your question"
-            rows={2}
-          />
-        </div>
-
-        {question.type === 'mcq' && (
-          <div>
-            <label className="block text-sm font-medium mb-1">Options (one per line)</label>
-            <TextArea
-              value={question.options?.join('\n') || ''}
-              onChange={(e) => updateQuestion(question.id, { 
-                options: e.target.value.split('\n').filter(opt => opt.trim()) 
-              })}
-              placeholder="Option 1&#10;Option 2&#10;Option 3"
-              rows={4}
-            />
-          </div>
-        )}
-
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={question.required}
-            onChange={(checked) => updateQuestion(question.id, { required: checked })}
-          />
-          <span className="text-sm">Required question</span>
-        </div>
-      </Space>
-    </Card>
-  );
 
   return (
     <Modal
@@ -237,32 +295,26 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
             </Button>
           </div>
 
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="questions">
-              {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef}>
-                  {questions.map((question, index) => (
-                    <Draggable
-                      key={question.id}
-                      draggableId={question.id}
-                      index={index}
-                    >
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          {renderQuestionForm(question, index)}
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={questions.map(q => q.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {questions.map((question, index) => (
+                <SortableQuestion
+                  key={question.id}
+                  question={question}
+                  index={index}
+                  updateQuestion={updateQuestion}
+                  deleteQuestion={deleteQuestion}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
 
           {questions.length === 0 && (
             <div className="text-center py-8 text-gray-500">
