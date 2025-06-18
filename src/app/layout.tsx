@@ -1,4 +1,5 @@
 import "./globals.css";
+import { ConfigProvider } from 'antd';
 
 export default function RootLayout({
   children,
@@ -8,7 +9,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {children}
+        <ConfigProvider
+          theme={{
+            token: {
+              colorPrimary: '#1890ff',
+              borderRadius: 6,
+            },
+          }}
+        >
+          {children}
+        </ConfigProvider>
       </body>
     </html>
   );
