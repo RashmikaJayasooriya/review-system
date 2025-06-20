@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from 'react';
-import '@ant-design/v5-patch-for-react-19';
 import {ConfigProvider, Layout} from 'antd';
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
