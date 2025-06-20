@@ -1,7 +1,16 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, Button, Select, Switch, Space, Card, message } from 'antd';
+import React, { useState } from 'react';
+import {
+  Modal,
+  Form,
+  Input,
+  Button,
+  Space,
+  Select,
+  Card,
+  Switch,
+  Tag,
+  Divider,
+} from 'antd';
 import {
   DndContext,
   closestCenter,
@@ -21,38 +30,30 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import {
-  PlusOutlined,
-  DeleteOutlined,
-  DragOutlined,
-  QuestionCircleOutlined
-} from '@ant-design/icons';
-import { Form as FormType, Question } from '@/types';
-import { v4 as uuidv4 } from 'uuid';
-
-const { TextArea } = Input;
-const { Option } = Select;
+import { Plus, GripVertical, Trash2, Eye, Lock } from 'lucide-react';
+import { ReviewForm, Question } from '@/types';
 
 interface FormBuilderProps {
   visible: boolean;
   onCancel: () => void;
-  onSubmit: (values: Partial<FormType>) => void;
-  form?: FormType | null;
+  onSubmit: (values: Partial<ReviewForm>) => void;
+  form?: ReviewForm;
+  serviceId: string;
   loading?: boolean;
 }
 
 interface SortableQuestionProps {
   question: Question;
-  index: number;
-  updateQuestion: (id: string, updates: Partial<Question>) => void;
-  deleteQuestion: (id: string) => void;
+  onUpdate: (questionId: string, updates: Partial<Question>) => void;
+  onDelete: (questionId: string) => void;
+  isDefault?: boolean;
 }
 
 const SortableQuestion: React.FC<SortableQuestionProps> = ({
   question,
-  index,
-  updateQuestion,
-  deleteQuestion
+  onUpdate,
+  onDelete,
+  isDefault = false,
 }) => {
   const {
     attributes,
@@ -60,7 +61,7 @@ const SortableQuestion: React.FC<SortableQuestionProps> = ({
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ id: question.id });
+  } = useSortable({ id: question.id, disabled: isDefault });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -71,71 +72,117 @@ const SortableQuestion: React.FC<SortableQuestionProps> = ({
     <div ref={setNodeRef} style={style} {...attributes}>
       <Card
         size="small"
-        className="mb-4"
+        className={`mb-3 border ${isDefault ? 'border-blue-200 bg-blue-50' : 'border-gray-200'}`}
         title={
           <div className="flex items-center gap-2">
-            <div {...listeners} className="cursor-move">
-              <DragOutlined className="text-gray-400" />
-            </div>
-            <QuestionCircleOutlined />
-            <span>Question {index + 1}</span>
+            {!isDefault && (
+              <div {...listeners} className="cursor-grab hover:cursor-grabbing">
+                <GripVertical size={16} className="text-gray-400" />
+              </div>
+            )}
+            {isDefault && (
+              <Lock size={16} className="text-blue-500" />
+            )}
+            <Tag color={isDefault ? "blue" : "default"}>
+              {question.type.toUpperCase()}
+            </Tag>
+            {question.required && (
+              <Tag color="red">Required</Tag>
+            )}
+            {isDefault && (
+              <Tag color="blue">Default</Tag>
+            )}
           </div>
         }
         extra={
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => deleteQuestion(question.id)}
-          />
+          !isDefault && (
+            <Button
+              type="text"
+              size="small"
+              icon={<Trash2 size={14} />}
+              onClick={() => onDelete(question.id)}
+              danger
+            />
+          )
         }
       >
-        <Space direction="vertical" className="w-full">
-          <div>
-            <label className="block text-sm font-medium mb-1">Question Type</label>
+        <div className="space-y-3">
+          <Input
+            placeholder="Question title"
+            value={question.title}
+            onChange={(e) => onUpdate(question.id, { title: e.target.value })}
+            disabled={isDefault}
+          />
+          
+          <div className="flex items-center gap-4">
             <Select
               value={question.type}
-              onChange={(value) => updateQuestion(question.id, { type: value })}
-              className="w-full"
+              onChange={(type) => onUpdate(question.id, { type })}
+              className="w-32"
+              size="small"
+              disabled={isDefault}
             >
-              <Option value="text">Text Response</Option>
-              <Option value="mcq">Multiple Choice</Option>
-              <Option value="rating">Rating (1-5)</Option>
+              <Select.Option value="text">Text</Select.Option>
+              <Select.Option value="textarea">Long Text</Select.Option>
+              <Select.Option value="mcq">Multiple Choice</Select.Option>
+              <Select.Option value="email">Email</Select.Option>
             </Select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Question Text</label>
-            <TextArea
-              value={question.question}
-              onChange={(e) => updateQuestion(question.id, { question: e.target.value })}
-              placeholder="Enter your question"
-              rows={2}
-            />
+            
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Required:</span>
+              <Switch
+                size="small"
+                checked={question.required}
+                onChange={(required) => onUpdate(question.id, { required })}
+                disabled={isDefault}
+              />
+            </div>
           </div>
 
           {question.type === 'mcq' && (
             <div>
-              <label className="block text-sm font-medium mb-1">Options (one per line)</label>
-              <TextArea
-                value={question.options?.join('\n') || ''}
-                onChange={(e) => updateQuestion(question.id, { 
-                  options: e.target.value.split('\n').filter(opt => opt.trim()) 
-                })}
-                placeholder="Option 1&#10;Option 2&#10;Option 3"
-                rows={4}
-              />
+              <div className="text-sm text-gray-600 mb-2">Options:</div>
+              <Space direction="vertical" className="w-full">
+                {question.options?.map((option, index) => (
+                  <Input
+                    key={index}
+                    placeholder={`Option ${index + 1}`}
+                    value={option}
+                    size="small"
+                    onChange={(e) => {
+                      const newOptions = [...(question.options || [])];
+                      newOptions[index] = e.target.value;
+                      onUpdate(question.id, { options: newOptions });
+                    }}
+                    suffix={
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<Trash2 size={12} />}
+                        onClick={() => {
+                          const newOptions = question.options?.filter((_, i) => i !== index);
+                          onUpdate(question.id, { options: newOptions || [] });
+                        }}
+                      />
+                    }
+                  />
+                ))}
+                <Button
+                  type="dashed"
+                  size="small"
+                  icon={<Plus size={14} />}
+                  onClick={() => {
+                    const newOptions = [...(question.options || []), ''];
+                    onUpdate(question.id, { options: newOptions });
+                  }}
+                  block
+                >
+                  Add Option
+                </Button>
+              </Space>
             </div>
           )}
-
-          <div className="flex items-center gap-2">
-            <Switch
-              checked={question.required}
-              onChange={(checked) => updateQuestion(question.id, { required: checked })}
-            />
-            <span className="text-sm">Required question</span>
-          </div>
-        </Space>
+        </div>
       </Card>
     </div>
   );
@@ -146,10 +193,32 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
   onCancel,
   onSubmit,
   form,
-  loading = false
+  serviceId,
+  loading = false,
 }) => {
-  const [formInstance] = Form.useForm();
+  const [formData] = Form.useForm();
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewData, setPreviewData] = useState<{ title?: string; description?: string }>({});
+
+
+  // Default questions that are always included
+  const defaultQuestions: Question[] = [
+    {
+      id: 'default_name',
+      type: 'text',
+      title: 'Full Name',
+      required: true,
+      order: 1,
+    },
+    {
+      id: 'default_email',
+      type: 'email',
+      title: 'Email Address',
+      required: true,
+      order: 2,
+    }
+  ];
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -158,40 +227,48 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
     })
   );
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (visible) {
       if (form) {
-        formInstance.setFieldsValue({
+        formData.setFieldsValue({
           title: form.title,
-          description: form.description
+          description: form.description,
         });
-        setQuestions(form.questions || []);
+        // Filter out default questions from existing form and add current defaults
+        const customQuestions = form.questions.filter(q => !q.id.startsWith('default_'));
+        const reorderedCustomQuestions = customQuestions.map((q, index) => ({
+          ...q,
+          order: index + 3 // Start after default questions
+        }));
+        setQuestions([...defaultQuestions, ...reorderedCustomQuestions]);
       } else {
-        formInstance.resetFields();
-        setQuestions([]);
+        formData.resetFields();
+        setQuestions([...defaultQuestions]);
       }
     }
-  }, [visible, form, formInstance]);
+  }, [visible, form, formData, defaultQuestions]);
 
   const addQuestion = () => {
     const newQuestion: Question = {
-      id: uuidv4(),
+      id: `q_${Date.now()}`,
       type: 'text',
-      question: '',
+      title: '',
       required: false,
-      order: questions.length + 1
+      order: questions.length + 1,
     };
     setQuestions([...questions, newQuestion]);
   };
 
-  const updateQuestion = (id: string, updates: Partial<Question>) => {
+  const updateQuestion = (questionId: string, updates: Partial<Question>) => {
     setQuestions(questions.map(q => 
-      q.id === id ? { ...q, ...updates } : q
+      q.id === questionId ? { ...q, ...updates } : q
     ));
   };
 
-  const deleteQuestion = (id: string) => {
-    setQuestions(questions.filter(q => q.id !== id));
+  const deleteQuestion = (questionId: string) => {
+    // Prevent deletion of default questions
+    if (questionId.startsWith('default_')) return;
+    setQuestions(questions.filter(q => q.id !== questionId));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -199,132 +276,264 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
 
     if (active.id !== over?.id) {
       setQuestions((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over?.id);
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over?.id);
+
+        // Don't allow moving default questions or moving items above default questions
+        const activeItem = items[oldIndex];
+        const overItem = items[newIndex];
+        
+        if (activeItem.id.startsWith('default_') || overItem.id.startsWith('default_')) {
+          return items;
+        }
+
+        // Only allow reordering among custom questions (index 2 and above)
+        if (oldIndex < 2 || newIndex < 2) {
+          return items;
+        }
 
         const newItems = arrayMove(items, oldIndex, newIndex);
-        
-        // Update order numbers
-        return newItems.map((item, index) => ({
-          ...item,
-          order: index + 1
-        }));
+        return newItems.map((item, index) => ({ ...item, order: index + 1 }));
       });
     }
   };
 
   const handleSubmit = async () => {
     try {
-      const values = await formInstance.validateFields();
+      const values = await formData.validateFields();
       
-      if (questions.length === 0) {
-        message.error('Please add at least one question');
-        return;
+      // Check if there are any custom questions beyond the defaults
+      const customQuestions = questions.filter(q => !q.id.startsWith('default_'));
+      
+      if (customQuestions.length === 0) {
+        throw new Error('Please add at least one custom question in addition to the default name and email fields');
       }
 
-      const hasEmptyQuestions = questions.some(q => !q.question.trim());
-      if (hasEmptyQuestions) {
-        message.error('Please fill in all question fields');
-        return;
+      // Validate that all questions have titles
+      const invalidQuestions = questions.filter(q => !q.title.trim());
+      if (invalidQuestions.length > 0) {
+        throw new Error('Please provide titles for all questions');
       }
 
-      onSubmit({
+      const formPayload: Partial<ReviewForm> = {
         ...values,
-        questions: questions.map((q, index) => ({ ...q, order: index + 1 }))
-      });
+        serviceId,
+        questions: questions.map((q, index) => ({ ...q, order: index + 1 })),
+        shareableLink: `https://forms.company.com/${Date.now()}`,
+        isActive: true,
+      };
+
+      onSubmit(formPayload);
     } catch (error) {
-      message.error('Please fill in all required fields');
+      console.error('Form validation failed:', error);
     }
   };
 
+  // Separate default and custom questions for rendering
+  const defaultQs = questions.filter(q => q.id.startsWith('default_'));
+  const customQs = questions.filter(q => !q.id.startsWith('default_'));
+
   return (
-    <Modal
-      title={form ? 'Edit Review Form' : 'Create New Review Form'}
-      open={visible}
-      onCancel={onCancel}
-      onOk={handleSubmit}
-      confirmLoading={loading}
-      width={800}
-      destroyOnClose
-    >
-      <div className="max-h-96 overflow-y-auto">
-        <Form
-          form={formInstance}
-          layout="vertical"
-          className="mb-6"
-        >
-          <Form.Item
-            name="title"
-            label="Form Title"
-            rules={[
-              { required: true, message: 'Please enter form title' },
-              { min: 2, message: 'Form title must be at least 2 characters' }
-            ]}
-          >
-            <Input
-              placeholder="Enter form title"
-              size="large"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="description"
-            label="Description (Optional)"
-            rules={[
-              { max: 500, message: 'Description cannot exceed 500 characters' }
-            ]}
-          >
-            <TextArea
-              placeholder="Enter form description"
-              rows={3}
-              showCount
-              maxLength={500}
-            />
-          </Form.Item>
-        </Form>
-
-        <div className="border-t pt-4">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-medium">Questions</h4>
+    <>
+      <Modal
+        title={
+          <div className="flex items-center justify-between">
+            <span>{form ? 'Edit Review Form' : 'Create Review Form'}</span>
             <Button
-              type="dashed"
-              icon={<PlusOutlined />}
-              onClick={addQuestion}
+              icon={<Eye size={16} />}
+              onClick={() => {
+                setPreviewData(formData.getFieldsValue());
+                setShowPreview(true);
+              }}
+              disabled={questions.length <= 2} // Only defaults
             >
-              Add Question
+              Preview
             </Button>
           </div>
-
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
+        }
+        open={visible}
+        onCancel={onCancel}
+        footer={[
+          <Button key="cancel" onClick={onCancel}>
+            Cancel
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            loading={loading}
+            onClick={handleSubmit}
           >
-            <SortableContext
-              items={questions.map(q => q.id)}
-              strategy={verticalListSortingStrategy}
+            {form ? 'Update Form' : 'Create Form'}
+          </Button>,
+        ]}
+        width={800}
+        style={{ top: 20 }}
+      >
+        <div className="max-h-[70vh] overflow-y-auto">
+          <Form form={formData} layout="vertical" className="mb-6">
+            <Form.Item
+              name="title"
+              label="Form Title"
+              rules={[{ required: true, message: 'Please enter a form title' }]}
             >
-              {questions.map((question, index) => (
+              <Input placeholder="Enter form title..." size="large" />
+            </Form.Item>
+
+            <Form.Item name="description" label="Description">
+              <Input.TextArea
+                placeholder="Enter form description..."
+                rows={3}
+                showCount
+                maxLength={300}
+              />
+            </Form.Item>
+          </Form>
+
+          <Divider>Questions</Divider>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-medium text-gray-700">
+                Form Questions ({questions.length})
+              </h4>
+              <Button
+                type="dashed"
+                icon={<Plus size={16} />}
+                onClick={addQuestion}
+              >
+                Add Question
+              </Button>
+            </div>
+
+            {/* Default Questions Section */}
+            <div className="space-y-3">
+              <div className="text-xs font-medium text-blue-600 uppercase tracking-wide">
+                Default Questions (Required)
+              </div>
+              {defaultQs.map((question) => (
                 <SortableQuestion
                   key={question.id}
                   question={question}
-                  index={index}
-                  updateQuestion={updateQuestion}
-                  deleteQuestion={deleteQuestion}
+                  onUpdate={updateQuestion}
+                  onDelete={deleteQuestion}
+                  isDefault={true}
                 />
               ))}
-            </SortableContext>
-          </DndContext>
-
-          {questions.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              <QuestionCircleOutlined className="text-4xl mb-2" />
-              <p>No questions added yet. Click "Add Question" to get started.</p>
             </div>
-          )}
+
+            {/* Custom Questions Section */}
+            {customQs.length > 0 && (
+              <div className="space-y-3">
+                <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                  Custom Questions
+                </div>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={customQs.map(q => q.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {customQs.map((question) => (
+                      <SortableQuestion
+                        key={question.id}
+                        question={question}
+                        onUpdate={updateQuestion}
+                        onDelete={deleteQuestion}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
+              </div>
+            )}
+
+            {customQs.length === 0 && (
+              <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
+                <p className="mb-2">Add custom questions to your form</p>
+                <p className="text-sm text-gray-400 mb-4">
+                  Name and email are included by default
+                </p>
+                <Button
+                  type="primary"
+                  icon={<Plus size={16} />}
+                  onClick={addQuestion}
+                >
+                  Add Your First Custom Question
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </Modal>
+      </Modal>
+
+      {/* Preview Modal */}
+      <Modal
+        title="Form Preview"
+        open={showPreview}
+        onCancel={() => setShowPreview(false)}
+        footer={[
+          <Button key="close" onClick={() => setShowPreview(false)}>
+            Close
+          </Button>
+        ]}
+        width={600}
+      >
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              {previewData.title || 'Untitled Form'}
+            </h2>
+            {previewData.description && (
+                <p className="text-gray-600">{previewData.description}</p>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            {questions.map((question, index) => (
+              <div key={question.id} className={`p-4 border rounded-lg ${
+                question.id.startsWith('default_') ? 'border-blue-200 bg-blue-50' : 'border-gray-200'
+              }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm font-medium text-gray-900">
+                    {index + 1}. {question.title || 'Untitled Question'}
+                  </span>
+                  {question.required && (
+                    <span className="text-red-500">*</span>
+                  )}
+                  {question.id.startsWith('default_') && (
+                    <Tag color="blue">Default</Tag>
+                  )}
+                </div>
+
+                {question.type === 'text' && (
+                  <Input placeholder="Your answer..." disabled />
+                )}
+                {question.type === 'email' && (
+                  <Input type="email" placeholder="your.email@example.com" disabled />
+                )}
+                {question.type === 'textarea' && (
+                  <Input.TextArea placeholder="Your answer..." rows={3} disabled />
+                )}
+                {question.type === 'mcq' && (
+                  <div className="space-y-2">
+                    {question.options?.map((option, optIndex) => (
+                      <div key={optIndex} className="flex items-center gap-2">
+                        <input type="radio" disabled />
+                        <span className="text-sm text-gray-700">
+                          {option || `Option ${optIndex + 1}`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 };
 

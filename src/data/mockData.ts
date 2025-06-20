@@ -1,128 +1,151 @@
-import { Service, Form, Question, Response, User } from '@/types';
+import { Service, ReviewForm, FormResponse, Question } from '../../../../OneDrive/Desktop/newOne/project/src/types';
 
-export const mockUser: User = {
+export const mockUser = {
   id: '1',
   name: 'John Smith',
-  email: 'john.smith@example.com',
-  avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1',
-  role: 'Service Provider'
+  email: 'john.smith@company.com',
+  avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2',
+  role: 'Service Manager'
 };
 
 export const mockServices: Service[] = [
   {
     id: '1',
     name: 'Web Development',
-    description: 'Custom web development services for businesses',
+    description: 'Custom web development services including React, Node.js, and full-stack solutions',
     createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15')
+    formsCount: 3,
+    responsesCount: 45
   },
   {
     id: '2',
     name: 'Digital Marketing',
-    description: 'Comprehensive digital marketing solutions',
-    createdAt: new Date('2024-01-20'),
-    updatedAt: new Date('2024-01-20')
+    description: 'Comprehensive digital marketing services including SEO, social media, and content marketing',
+    createdAt: new Date('2024-02-01'),
+    formsCount: 2,
+    responsesCount: 28
   },
   {
     id: '3',
-    name: 'Graphic Design',
-    description: 'Professional graphic design and branding services',
-    createdAt: new Date('2024-02-01'),
-    updatedAt: new Date('2024-02-01')
+    name: 'Consulting Services',
+    description: 'Business consulting and strategy development services',
+    createdAt: new Date('2024-02-10'),
+    formsCount: 1,
+    responsesCount: 12
   }
 ];
 
-export const mockQuestions: Question[] = [
+const defaultQuestions: Question[] = [
   {
-    id: '1',
-    type: 'rating',
-    question: 'How would you rate our overall service quality?',
+    id: 'default_name',
+    type: 'text',
+    title: 'Full Name',
     required: true,
     order: 1
   },
   {
-    id: '2',
-    type: 'mcq',
-    question: 'How did you hear about our services?',
-    options: ['Google Search', 'Social Media', 'Referral', 'Advertisement', 'Other'],
+    id: 'default_email',
+    type: 'email',
+    title: 'Email Address',
     required: true,
     order: 2
-  },
+  }
+];
+
+const sampleCustomQuestions: Question[] = [
   {
-    id: '3',
-    type: 'text',
-    question: 'What aspects of our service did you like most?',
-    required: false,
+    id: 'q1',
+    type: 'mcq',
+    title: 'How would you rate our service overall?',
+    required: true,
+    options: ['Excellent', 'Good', 'Average', 'Poor'],
     order: 3
   },
   {
-    id: '4',
-    type: 'text',
-    question: 'Any suggestions for improvement?',
+    id: 'q2',
+    type: 'textarea',
+    title: 'Please provide any additional feedback',
     required: false,
     order: 4
   }
 ];
 
-export const mockForms: Form[] = [
+export const mockForms: ReviewForm[] = [
   {
     id: '1',
     serviceId: '1',
-    title: 'Web Development Feedback Form',
+    title: 'Post-Project Feedback',
     description: 'Help us improve our web development services',
-    questions: mockQuestions,
-    shareableLink: 'https://reviews.example.com/form/web-dev-feedback-2024',
-    createdAt: new Date('2024-01-16'),
-    updatedAt: new Date('2024-01-16'),
-    isActive: true
+    questions: [...defaultQuestions, ...sampleCustomQuestions],
+    shareableLink: 'https://forms.company.com/feedback/web-dev-1',
+    createdAt: new Date('2024-01-20'),
+    isActive: true,
+    responsesCount: 23
   },
   {
     id: '2',
     serviceId: '1',
-    title: 'Project Completion Survey',
-    description: 'Post-project completion feedback',
-    questions: mockQuestions.slice(0, 2),
-    shareableLink: 'https://reviews.example.com/form/project-completion-2024',
-    createdAt: new Date('2024-01-18'),
-    updatedAt: new Date('2024-01-18'),
-    isActive: true
+    title: 'Client Satisfaction Survey',
+    description: 'Quick survey about your experience',
+    questions: [...defaultQuestions, sampleCustomQuestions[0]],
+    shareableLink: 'https://forms.company.com/survey/web-dev-2',
+    createdAt: new Date('2024-02-05'),
+    isActive: true,
+    responsesCount: 15
   },
   {
     id: '3',
     serviceId: '2',
     title: 'Marketing Campaign Review',
-    description: 'Feedback on our marketing campaign effectiveness',
-    questions: mockQuestions.slice(1, 4),
-    shareableLink: 'https://reviews.example.com/form/marketing-review-2024',
-    createdAt: new Date('2024-01-22'),
-    updatedAt: new Date('2024-01-22'),
-    isActive: false
+    description: 'Feedback on our digital marketing campaigns',
+    questions: [
+      ...defaultQuestions,
+      {
+        id: 'q4',
+        type: 'mcq',
+        title: 'How effective was our marketing campaign?',
+        required: true,
+        options: ['Very Effective', 'Effective', 'Somewhat Effective', 'Not Effective'],
+        order: 3
+      },
+      {
+        id: 'q5',
+        type: 'textarea',
+        title: 'What improvements would you suggest?',
+        required: false,
+        order: 4
+      }
+    ],
+    shareableLink: 'https://forms.company.com/marketing/campaign-1',
+    createdAt: new Date('2024-02-12'),
+    isActive: true,
+    responsesCount: 18
   }
 ];
 
-export const mockResponses: Response[] = [
+export const mockResponses: FormResponse[] = [
   {
     id: '1',
     formId: '1',
-    answers: {
-      '1': 5,
-      '2': 'Google Search',
-      '3': 'Professional quality and timely delivery',
-      '4': 'More frequent updates during development'
+    responses: {
+      'default_name': 'Sarah Johnson',
+      'default_email': 'sarah.johnson@email.com',
+      'q1': 'Excellent',
+      'q2': 'Great work on the project. Very professional team.'
     },
-    submittedAt: new Date('2024-01-17'),
-    customerEmail: 'customer1@example.com'
+    submittedAt: new Date('2024-02-20'),
+    rating: 5
   },
   {
     id: '2',
     formId: '1',
-    answers: {
-      '1': 4,
-      '2': 'Referral',
-      '3': 'Great communication and technical expertise',
-      '4': 'Could improve initial consultation process'
+    responses: {
+      'default_name': 'Mike Davis',
+      'default_email': 'mike.davis@email.com',
+      'q1': 'Good',
+      'q2': 'Delivered on time and met all requirements.'
     },
-    submittedAt: new Date('2024-01-19'),
-    customerEmail: 'customer2@example.com'
+    submittedAt: new Date('2024-02-22'),
+    rating: 4
   }
 ];

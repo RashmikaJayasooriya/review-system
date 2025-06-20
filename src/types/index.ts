@@ -3,19 +3,20 @@ export interface Service {
   name: string;
   description?: string;
   createdAt: Date;
-  updatedAt: Date;
+  formsCount: number;
+  responsesCount: number;
 }
 
 export interface Question {
   id: string;
-  type: 'mcq' | 'text' | 'rating';
-  question: string;
-  options?: string[];
+  type: 'text' | 'mcq' | 'textarea' | 'email';
+  title: string;
   required: boolean;
+  options?: string[];
   order: number;
 }
 
-export interface Form {
+export interface ReviewForm {
   id: string;
   serviceId: string;
   title: string;
@@ -23,16 +24,16 @@ export interface Form {
   questions: Question[];
   shareableLink: string;
   createdAt: Date;
-  updatedAt: Date;
   isActive: boolean;
+  responsesCount: number;
 }
 
-export interface Response {
+export interface FormResponse {
   id: string;
   formId: string;
-  answers: Record<string, any>;
+  responses: Record<string, string>;
   submittedAt: Date;
-  customerEmail?: string;
+  rating?: number;
 }
 
 export interface User {

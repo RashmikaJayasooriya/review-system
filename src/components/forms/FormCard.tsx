@@ -1,142 +1,171 @@
-'use client';
-
 import React from 'react';
-import { Card, Button, Dropdown, Typography, Tag, Space } from 'antd';
+import { Card, Button, Tag, Dropdown, Space, Tooltip } from 'antd';
 import {
-  MoreOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  EyeOutlined,
-  LinkOutlined,
-  PlayCircleOutlined,
-  PauseCircleOutlined,
-  BarChartOutlined
-} from '@ant-design/icons';
-import { Form } from '@/types';
-
-const { Text, Paragraph } = Typography;
+  MoreVertical,
+  Eye,
+  Edit,
+  Share2,
+  BarChart3,
+  Copy,
+  Trash2,
+  Play,
+  Pause
+} from 'lucide-react';
+import type { MenuProps } from 'antd';
+import { ReviewForm } from '@/types';
+import { message } from 'antd';
 
 interface FormCardProps {
-  form: Form;
-  onEdit: (form: Form) => void;
+  form: ReviewForm;
+  onEdit: (form: ReviewForm) => void;
   onDelete: (formId: string) => void;
-  onPreview: (form: Form) => void;
-  onToggleStatus: (formId: string, isActive: boolean) => void;
-  onCopyLink: (link: string) => void;
   onViewResponses: (formId: string) => void;
-  responsesCount?: number;
+  onToggleStatus: (formId: string, isActive: boolean) => void;
 }
 
 const FormCard: React.FC<FormCardProps> = ({
   form,
   onEdit,
   onDelete,
-  onPreview,
-  onToggleStatus,
-  onCopyLink,
   onViewResponses,
-  responsesCount = 0
+  onToggleStatus,
 }) => {
-  const menuItems = [
-    {
-      key: 'edit',
-      icon: <EditOutlined />,
-      label: 'Edit Form',
-      onClick: () => onEdit(form)
-    },
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(form.shareableLink);
+    message.success('Form link copied to clipboard!');
+  };
+
+  const menuItems: MenuProps['items'] = [
     {
       key: 'preview',
-      icon: <EyeOutlined />,
+      icon: <Eye size={16} />,
       label: 'Preview Form',
-      onClick: () => onPreview(form)
     },
     {
-      key: 'copy-link',
-      icon: <LinkOutlined />,
-      label: 'Copy Shareable Link',
-      onClick: () => onCopyLink(form.shareableLink)
+      key: 'edit',
+      icon: <Edit size={16} />,
+      label: 'Edit Form',
+      onClick: () => onEdit(form),
     },
     {
-      key: 'toggle-status',
-      icon: form.isActive ? <PauseCircleOutlined /> : <PlayCircleOutlined />,
-      label: form.isActive ? 'Deactivate Form' : 'Activate Form',
-      onClick: () => onToggleStatus(form.id, !form.isActive)
+      key: 'share',
+      icon: <Share2 size={16} />,
+      label: 'Share Form',
     },
     {
-      type: 'divider' as const,
+      key: 'copy',
+      icon: <Copy size={16} />,
+      label: 'Copy Link',
+      onClick: handleCopyLink,
+    },
+    {
+      type: 'divider',
+    },
+    {
+      key: 'toggle',
+      icon: form.isActive ? <Pause size={16} /> : <Play size={16} />,
+      label: form.isActive ? 'Deactivate' : 'Activate',
+      onClick: () => onToggleStatus(form.id, !form.isActive),
     },
     {
       key: 'delete',
-      icon: <DeleteOutlined />,
+      icon: <Trash2 size={16} />,
       label: 'Delete Form',
       danger: true,
-      onClick: () => onDelete(form.id)
-    }
+      onClick: () => onDelete(form.id),
+    },
   ];
 
   return (
     <Card
-      className="h-full hover:shadow-lg transition-shadow duration-200"
+      className="h-full hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-blue-300"
+      styles={{ body: { padding: 24 } }}
       actions={[
-        <Button
-          key="responses"
-          type="link"
-          icon={<BarChartOutlined />}
-          onClick={() => onViewResponses(form.id)}
-        >
-          Responses ({responsesCount})
-        </Button>,
-        <Button
-          key="copy"
-          type="link"
-          icon={<LinkOutlined />}
-          onClick={() => onCopyLink(form.shareableLink)}
-        >
-          Copy Link
-        </Button>
-      ]}
-      extra={
+        <Tooltip title="View Responses" key="view-responses">
+          <Button
+            type="text"
+            icon={<BarChart3 size={16} />}
+            onClick={() => onViewResponses(form.id)}
+            className="flex items-center gap-2"
+          >
+            <span className="hidden sm:inline">Responses</span>
+          </Button>
+        </Tooltip>,
+        <Tooltip title="Share Form" key="share-form">
+          <Button
+            type="text"
+            icon={<Share2 size={16} />}
+            onClick={handleCopyLink}
+            className="flex items-center gap-2"
+          >
+            <span className="hidden sm:inline">Share</span>
+          </Button>
+        </Tooltip>,
         <Dropdown
+            key="more-options"
           menu={{ items: menuItems }}
           trigger={['click']}
           placement="bottomRight"
         >
-          <Button type="text" icon={<MoreOutlined />} />
-        </Dropdown>
-      }
+          <Button
+            type="text"
+            icon={<MoreVertical size={16} />}
+            className="flex items-center justify-center"
+          />
+        </Dropdown>,
+      ]}
     >
-      <div className="space-y-3">
-        <div>
-          <div className="flex items-start justify-between mb-2">
-            <h3 className="text-lg font-semibold text-gray-900 flex-1">
+      <div className="space-y-4">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {form.title}
             </h3>
-            <Tag color={form.isActive ? 'green' : 'red'} className="ml-2">
-              {form.isActive ? 'Active' : 'Inactive'}
-            </Tag>
-          </div>
-          
-          {form.description && (
-            <Paragraph
-              ellipsis={{ rows: 2, expandable: false }}
-              className="text-gray-600 mb-3"
-            >
-              {form.description}
-            </Paragraph>
-          )}
-        </div>
-        
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Space>
-              <Tag>{form.questions.length} Questions</Tag>
-              <Tag color="blue">{responsesCount} Responses</Tag>
+            <Space size="small">
+              <Tag color={form.isActive ? 'green' : 'red'} className="text-xs">
+                {form.isActive ? 'Active' : 'Inactive'}
+              </Tag>
+              <Tag color="blue" className="text-xs">
+                {form.questions.length} Questions
+              </Tag>
             </Space>
           </div>
+        </div>
+
+        <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
+          {form.description || 'No description provided'}
+        </p>
+
+        <div className="bg-gray-50 p-3 rounded-lg">
+          <div className="text-xs text-gray-500 mb-1">Shareable Link</div>
+          <div className="flex items-center gap-2">
+            <code className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded flex-1 truncate">
+              {form.shareableLink}
+            </code>
+            <Button
+              type="text"
+              size="small"
+              icon={<Copy size={14} />}
+              onClick={handleCopyLink}
+              className="flex-shrink-0"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+          <div className="text-center">
+            <div className="text-lg font-semibold text-green-600">
+              {form.responsesCount}
+            </div>
+            <div className="text-xs text-gray-500">Responses</div>
+          </div>
           
-          <Text type="secondary" className="text-xs block">
-            Created {form.createdAt.toLocaleDateString()}
-          </Text>
+          <div className="text-right">
+            <div className="text-xs text-gray-500">Created</div>
+            <div className="text-sm font-medium text-gray-700">
+              {form.createdAt.toLocaleDateString()}
+            </div>
+          </div>
         </div>
       </div>
     </Card>
