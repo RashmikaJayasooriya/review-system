@@ -1,4 +1,4 @@
-import { Service, ReviewForm, FormResponse, Question } from '../../../../OneDrive/Desktop/newOne/project/src/types';
+import { Service, ReviewForm, FormResponse, Question } from '@/types';
 
 export const mockUser = {
   id: '1',

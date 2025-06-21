@@ -10,7 +10,7 @@ import { Service } from '@/types';
 import {useRouter} from "next/navigation";
 
 const Services: React.FC = () => {
-    const route = useRouter();
+    const router = useRouter();
     const [services, setServices] = useState<Service[]>(mockServices);
     const [filteredServices, setFilteredServices] = useState<Service[]>(mockServices);
     const [showServiceForm, setShowServiceForm] = useState(false);
@@ -59,7 +59,7 @@ const Services: React.FC = () => {
     };
 
     const handleViewForms = (serviceId: string) => {
-        route.push(`/forms?serviceId=${serviceId}`);
+        router.push(`/forms?serviceId=${serviceId}`);
     };
 
     const handleServiceSubmit = (values: Partial<Service>) => {
