@@ -34,3 +34,15 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Database Configuration
+
+This project uses MongoDB via [Mongoose](https://mongoosejs.com/). Provide a connection string in an environment variable named `MONGODB_URI` before starting the server.
+
+Example `.env.local`:
+
+```bash
+MONGODB_URI="mongodb://<user>:<password>@145.223.74.101:27018/?directConnection=true"
+```
+
+The database name `miv-review-db` is specified in the application code.
