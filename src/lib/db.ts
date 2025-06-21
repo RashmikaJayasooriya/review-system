@@ -23,10 +23,16 @@ if (!cached) {
 
 export default async function connectToDatabase() {
   if (cached!.conn) return cached!.conn;
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI environment variable is not defined');
+  }
   if (!cached!.promise) {
     cached!.promise = mongoose
       .connect(MONGODB_URI, { dbName: 'miv-review-db' })
-      .then((mongoose) => mongoose);
+      .then((mongoose) => {
+        console.log('Connected to MongoDB');
+        return mongoose;
+      });
   }
   cached!.conn = await cached!.promise;
   return cached!.conn;
