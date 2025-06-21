@@ -1,6 +1,8 @@
-import "./globals.css";
 import '@ant-design/v5-patch-for-react-19';
+import "./globals.css";
 import { ConfigProvider } from 'antd';
+import { AntdRegistry } from "@ant-design/nextjs-registry";
+import React from "react";
 
 export default function RootLayout({
   children,
@@ -10,6 +12,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <AntdRegistry >
         <ConfigProvider
           theme={{
             token: {
@@ -20,6 +23,7 @@ export default function RootLayout({
         >
           {children}
         </ConfigProvider>
+        </AntdRegistry>
       </body>
     </html>
   );

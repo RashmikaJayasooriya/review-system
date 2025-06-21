@@ -1,9 +1,8 @@
 "use client";
 
-import React, {useActionState, useEffect} from 'react';
-import {Modal, Input, Button} from 'antd';
-import {useFormStatus} from 'react-dom';
-import {createService} from '@/app/dashboard/services/actions';
+import React, {useActionState, useEffect} from "react";
+import { Modal, Input, Button } from "antd";
+import { createService } from "@/app/dashboard/services/actions";
 
 interface Props {
     open: boolean;
@@ -16,22 +15,16 @@ interface FormState {
     error?: string;
 }
 
-function SubmitButton() {
-    const {pending} = useFormStatus();
-    return (
-        <Button type="primary" htmlType="submit" disabled={pending} loading={pending}>
-            Create Service
-        </Button>
+export default function CreateServiceModal({ open, onClose, onSuccess }: Props) {
+    // ➊ Grab isPending (3rd return value)
+    const [state, formAction, isPending] = useActionState<FormState, FormData>(
+        createService,
+        { success: false }
     );
-}
-
-export default function CreateServiceModal({open, onClose, onSuccess}: Props) {
-    const [state, formAction] = useActionState<FormState, FormData>(createService, {
-        success: false,
-    });
 
     useEffect(() => {
         if (state.success) {
+            console.log("Service created successfully");
             onSuccess();
         }
     }, [state, onSuccess]);
@@ -46,15 +39,10 @@ export default function CreateServiceModal({open, onClose, onSuccess}: Props) {
         >
             <form action={formAction} className="mt-4 space-y-4">
                 <div>
-                    <label htmlFor="name" className={"flex items-center gap-x-2"}><span
-                        className="text-red-500 text-xl h-6">*</span> Service Name</label>
-                    <Input
-                        id="name"
-                        name="name"
-                        placeholder="Service Name"
-                        size="large"
-                        required
-                    />
+                    <label htmlFor="name" className="flex items-center gap-x-2">
+                        <span className="text-red-500 text-xl h-6">*</span> Service Name
+                    </label>
+                    <Input id="name" name="name" placeholder="Service Name" size="large" required />
                 </div>
 
                 <div>
@@ -71,7 +59,16 @@ export default function CreateServiceModal({open, onClose, onSuccess}: Props) {
 
                 <div className="flex justify-end gap-2 pt-2">
                     <Button onClick={onClose}>Cancel</Button>
-                    <SubmitButton/>
+
+                    {/* ➋ Use the isPending flag */}
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        disabled={isPending}
+                        loading={isPending}
+                    >
+                        {isPending ? "Creating…" : "Create Service"}
+                    </Button>
                 </div>
             </form>
         </Modal>
