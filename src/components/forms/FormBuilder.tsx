@@ -33,6 +33,24 @@ import { CSS } from '@dnd-kit/utilities';
 import { Plus, GripVertical, Trash2, Eye, Lock } from 'lucide-react';
 import { ReviewForm, Question } from '@/types';
 
+// Default questions that are always included for every form
+const DEFAULT_QUESTIONS: Question[] = [
+  {
+    id: 'default_name',
+    type: 'text',
+    title: 'Full Name',
+    required: true,
+    order: 1,
+  },
+  {
+    id: 'default_email',
+    type: 'email',
+    title: 'Email Address',
+    required: true,
+    order: 2,
+  },
+];
+
 interface FormBuilderProps {
   visible: boolean;
   onCancel: () => void;
@@ -203,22 +221,22 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
 
 
   // Default questions that are always included
-  const defaultQuestions: Question[] = [
-    {
-      id: 'default_name',
-      type: 'text',
-      title: 'Full Name',
-      required: true,
-      order: 1,
-    },
-    {
-      id: 'default_email',
-      type: 'email',
-      title: 'Email Address',
-      required: true,
-      order: 2,
-    }
-  ];
+  // const defaultQuestions: Question[] = [
+  //   {
+  //     id: 'default_name',
+  //     type: 'text',
+  //     title: 'Full Name',
+  //     required: true,
+  //     order: 1,
+  //   },
+  //   {
+  //     id: 'default_email',
+  //     type: 'email',
+  //     title: 'Email Address',
+  //     required: true,
+  //     order: 2,
+  //   }
+  // ];
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -240,13 +258,13 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
           ...q,
           order: index + 3 // Start after default questions
         }));
-        setQuestions([...defaultQuestions, ...reorderedCustomQuestions]);
+        setQuestions([...DEFAULT_QUESTIONS, ...reorderedCustomQuestions]);
       } else {
         formData.resetFields();
-        setQuestions([...defaultQuestions]);
+        setQuestions([...DEFAULT_QUESTIONS]);
       }
     }
-  }, [visible, form, formData, defaultQuestions]);
+  }, [visible, form, formData]);
 
   const addQuestion = () => {
     const newQuestion: Question = {
@@ -346,6 +364,7 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
                 setShowPreview(true);
               }}
               disabled={questions.length <= 2} // Only defaults
+              style={{ marginRight: "40px" }}
             >
               Preview
             </Button>
