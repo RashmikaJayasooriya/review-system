@@ -22,16 +22,20 @@ export async function getForms(): Promise<ReviewForm[]> {
             responsesCount: number;
         }[]>();
 
-    return forms.map(f => ({
+
+    return forms.map((f) => ({
         id: f._id.toString(),
         serviceId: f.serviceId.toString(),
         title: f.title,
         description: f.description ?? '',
-        questions: f.questions,
+        questions: f.questions.map(q => {
+            const { _id, ...rest } = q;
+            return { ...rest, id: rest.id ?? String(_id) };
+        }),
         shareableLink: f.shareableLink,
         createdAt: f.createdAt,
         isActive: f.isActive,
-        responsesCount: f.responsesCount ?? 0,
+        responsesCount: f.responsesCount,
     }));
 }
 
@@ -48,9 +52,21 @@ export async function createForm(
     const title = formData.get('title');
     const description = formData.get('description');
     const serviceId = formData.get('serviceId');
+    const questionsData = formData.get('questions');
+
     if (!title || typeof title !== 'string' || !serviceId || typeof serviceId !== 'string') {
         console.error('Invalid form data:', { title, description, serviceId });
         return { error: 'Invalid data' };
+    }
+
+    let questions: any[] = [];
+    if (typeof questionsData === 'string' && questionsData.trim().length > 0) {
+        try {
+            questions = JSON.parse(questionsData);
+        } catch (err) {
+            console.error('Failed to parse questions', err);
+            return { error: 'Invalid questions data' };
+        }
     }
 
     await connectToDatabase();
@@ -58,7 +74,8 @@ export async function createForm(
         title,
         description,
         serviceId,
-        questions: [],
+        // questions: [],
+        questions,
         shareableLink: `https://forms.company.com/${Date.now()}`,
         isActive: true,
     });
