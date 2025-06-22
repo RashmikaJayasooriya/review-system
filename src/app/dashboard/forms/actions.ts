@@ -15,7 +15,7 @@ export async function getForms(): Promise<ReviewForm[]> {
             serviceId: mongoose.Types.ObjectId;
             title: string;
             description?: string;
-            questions: any[];
+            questions: unknown[];
             shareableLink: string;
             createdAt: Date;
             isActive: boolean;
@@ -59,7 +59,7 @@ export async function createForm(
         return { error: 'Invalid data' };
     }
 
-    let questions: any[] = [];
+    let questions: unknown[] = [];
     if (typeof questionsData === 'string' && questionsData.trim().length > 0) {
         try {
             questions = JSON.parse(questionsData);
@@ -81,5 +81,60 @@ export async function createForm(
     });
     revalidatePath('/dashboard/forms');
     console.log('Form created successfully');
+    return { success: true };
+}
+
+interface UpdateFormState {
+    success?: boolean;
+    error?: string;
+}
+
+export async function updateForm(
+    _prevState: UpdateFormState,
+    formData: FormData
+): Promise<UpdateFormState> {
+    const formId = formData.get('formId');
+    const title = formData.get('title');
+    const description = formData.get('description');
+    const questionsData = formData.get('questions');
+
+    if (!formId || typeof formId !== 'string') {
+        return { error: 'Invalid form id' };
+    }
+    if (!title || typeof title !== 'string') {
+        return { error: 'Title is required' };
+    }
+
+    let questions: unknown[] = [];
+    if (typeof questionsData === 'string' && questionsData.trim().length > 0) {
+        try {
+            questions = JSON.parse(questionsData);
+        } catch (err) {
+            console.error('Failed to parse questions', err);
+            return { error: 'Invalid questions data' };
+        }
+    }
+
+    await connectToDatabase();
+    await ReviewFormModel.findByIdAndUpdate(formId, {
+        title,
+        description,
+        questions,
+    });
+    revalidatePath('/dashboard/forms');
+    return { success: true };
+}
+
+export async function toggleFormStatus(formId: string, isActive: boolean) {
+    await connectToDatabase();
+    await ReviewFormModel.findByIdAndUpdate(formId, { isActive });
+    revalidatePath('/dashboard/forms');
+    return { success: true };
+}
+
+export async function deleteForm(formId: string) {
+    await connectToDatabase();
+    await ReviewFormModel.findByIdAndDelete(formId);
+    revalidatePath('/dashboard/forms');
     return { success: true };
 }

@@ -13,11 +13,11 @@ import {
 } from 'lucide-react';
 import type { MenuProps } from 'antd';
 import { ReviewForm } from '@/types';
-import { message } from 'antd';
 
 interface FormCardProps {
   form: ReviewForm;
   onEdit: (form: ReviewForm) => void;
+  onPreview: (form: ReviewForm) => void;
   onDelete: (formId: string) => void;
   onViewResponses: (formId: string) => void;
   onToggleStatus: (formId: string, isActive: boolean) => void;
@@ -25,14 +25,14 @@ interface FormCardProps {
 
 const FormCard: React.FC<FormCardProps> = ({
   form,
-  onEdit,
+  onEdit,onPreview,
   onDelete,
   onViewResponses,
   onToggleStatus,
 }) => {
   const handleCopyLink = () => {
     navigator.clipboard.writeText(form.shareableLink);
-    message.success('Form link copied to clipboard!');
+    // message.success('Form link copied to clipboard!');
   };
 
   const menuItems: MenuProps['items'] = [
@@ -40,6 +40,7 @@ const FormCard: React.FC<FormCardProps> = ({
       key: 'preview',
       icon: <Eye size={16} />,
       label: 'Preview Form',
+      onClick: () => onPreview(form),
     },
     {
       key: 'edit',
