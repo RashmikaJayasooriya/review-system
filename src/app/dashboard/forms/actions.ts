@@ -2,7 +2,7 @@
 import connectToDatabase from '@/lib/db';
 import ReviewFormModel from '@/models/ReviewForm';
 import { revalidatePath } from 'next/cache';
-import { ReviewForm } from '@/types';
+import {Question, ReviewForm} from '@/types';
 import mongoose from 'mongoose';
 
 export async function getForms(): Promise<ReviewForm[]> {
@@ -137,4 +137,35 @@ export async function deleteForm(formId: string) {
     await ReviewFormModel.findByIdAndDelete(formId);
     revalidatePath('/dashboard/forms');
     return { success: true };
+}
+
+export async function getFormByLink(link: string): Promise<ReviewForm | null> {
+    await connectToDatabase();
+    const f = await ReviewFormModel.findOne({ shareableLink: link })
+        .lean<{
+            _id: mongoose.Types.ObjectId;
+            serviceId: mongoose.Types.ObjectId;
+            title: string;
+            description?: string;
+            questions: Question[];
+            shareableLink: string;
+            createdAt: Date;
+            isActive: boolean;
+            responsesCount: number;
+        } | null>();
+    if (!f) return null;
+    return {
+        id: f._id.toString(),
+        serviceId: f.serviceId.toString(),
+        title: f.title,
+        description: f.description ?? '',
+        questions: f.questions.map((q) => {
+            const { _id, ...rest } = q as unknown as { _id?: string } & Question;
+            return { ...rest, id: rest.id ?? String(_id) };
+        }),
+        shareableLink: f.shareableLink,
+        createdAt: f.createdAt,
+        isActive: f.isActive,
+        responsesCount: f.responsesCount,
+    };
 }
