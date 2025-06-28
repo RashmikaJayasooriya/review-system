@@ -1,8 +1,8 @@
 'use client';
-import {Row, Col, Empty, Tag, message, Modal} from 'antd';
-import { useSearchFilter } from './SearchFilterContext';
+import {Col, Empty, message, Modal, Row, Tag} from 'antd';
+import {useSearchFilter} from './SearchFilterContext';
 import FormCard from '@/components/forms/FormCard';
-import { ReviewForm } from '@/types';
+import {ReviewForm} from '@/types';
 import {useMemo, useState} from 'react';
 import FormPreviewModal from "@/components/forms/FormPreviewModal";
 import EditFormModal from "@/components/forms/EditFormModal";
@@ -69,8 +69,7 @@ export default function FormsList({ initialForms }: Props) {
     };
 
     const formsToDisplay = useMemo(() => {
-        const withDate = forms.map(f => ({ ...f, createdAt: new Date(f.createdAt) }));
-        let filtered = withDate;
+        let filtered = forms.map(f => ({...f, createdAt: new Date(f.createdAt)}));
         if (serviceId !== 'all') {
             filtered = filtered.filter(f => f.serviceId === serviceId);
         }
