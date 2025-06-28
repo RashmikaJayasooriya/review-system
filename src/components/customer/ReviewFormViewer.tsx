@@ -1,7 +1,9 @@
 'use client';
-import { useState } from 'react';
+import {useActionState, useState} from 'react';
 import { ReviewForm as ReviewFormType } from '@/types';
-import { Input, Button } from 'antd';
+import {Input, Button, Radio, RadioChangeEvent, Space} from 'antd';
+import {saveReview} from "@/app/review/actions";
+
 
 interface Props {
     form: ReviewFormType;
@@ -11,6 +13,10 @@ export default function ReviewFormViewer({ form }: Props) {
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
     const [reviews, setReviews] = useState<string[]>([]);
+    const [selectedReview, setSelectedReview] = useState('');
+
+    const initialState = { success: false, error: '' };
+    const [state, formAction, isPending] = useActionState(saveReview, initialState);
 
     const updateAnswer = (id: string, value: string) => {
         setAnswers(prev => ({ ...prev, [id]: value }));
@@ -29,6 +35,7 @@ export default function ReviewFormViewer({ form }: Props) {
             const data = await res.json();
             console.log('Generated reviews:', data);
             setReviews(data.reviews || []);
+            setSelectedReview('');
         } catch (err) {
             console.error(err);
         } finally {
@@ -74,16 +81,43 @@ export default function ReviewFormViewer({ form }: Props) {
             </div>
 
             <div>
-            {/*{reviews.length > 0 && (*/}
-                <div className="mt-4 space-y-2 p-4 rounded-lg">
-                    <h3 className="font-medium">Generated Review Variations</h3>
-                    <ul className="list-disc pl-6 space-y-1">
-                        {reviews.map((r, i) => (
-                            <li key={i}>{r}</li>
-                        ))}
-                    </ul>
-                </div>
-            {/*)}*/}
+                {reviews.length > 0 && (
+                    <form action={formAction} className="mt-4 space-y-4 p-4 rounded-lg bg-gray-200">
+                        <h3 className="font-medium">Generated Review Variations</h3>
+                        <input type="hidden" name="formId" value={form.id} />
+                        <input type="hidden" name="review" value={selectedReview} />
+                        <input type="hidden" name="name" value={answers['default_name'] || ''} />
+                        <input type="hidden" name="email" value={answers['default_email'] || ''} />
+
+                        <Radio.Group
+                            onChange={(e: RadioChangeEvent) => setSelectedReview(e.target.value)}
+                            value={selectedReview}
+                        >
+                            <Space direction="vertical" size={0}>
+                                {reviews.map((r, i) => (
+                                    <div key={i}>
+                                        <Radio value={r}  >
+                                            {r}
+                                        </Radio>
+                                        <hr className="my-4 border-gray-300" />
+                                    </div>
+                                ))}
+                            </Space>
+                        </Radio.Group>
+
+                        {state.success && <div className="text-green-600">Saved!</div>}
+                        {state.error && <div className="text-red-500">{state.error}</div>}
+
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            disabled={!selectedReview || isPending}
+                            loading={isPending}
+                        >
+                            Save
+                        </Button>
+                    </form>
+                )}
             </div>
         </div>
     );
