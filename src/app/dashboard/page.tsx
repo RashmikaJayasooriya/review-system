@@ -8,7 +8,6 @@ import {
     FileText,
     MessageSquare,
     ArrowRight,
-    Star,
     Clock
 } from 'lucide-react';
 import { mockServices, mockForms, mockResponses } from '@/data/mockData';
@@ -28,37 +27,20 @@ type Service = {
 const Dashboard: React.FC = () => {
     const router = useRouter();
 
-    const totalServices = mockServices.length;
     const totalForms = mockForms.length;
     const totalResponses = mockResponses.length;
-    const averageRating = 4.6;
 
-    const recentActivity = [
-        {
-            id: '1',
-            type: 'response',
-            title: 'New feedback received',
-            description: 'Sarah Johnson submitted feedback for Web Development',
-            time: '2 minutes ago',
-            avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=2',
-        },
-        {
-            id: '2',
-            type: 'form',
-            title: 'Form created',
-            description: 'Client Satisfaction Survey was created',
-            time: '1 hour ago',
-            avatar: null,
-        },
-        {
-            id: '3',
-            type: 'service',
-            title: 'Service updated',
-            description: 'Digital Marketing service was updated',
-            time: '3 hours ago',
-            avatar: null,
-        },
-    ];
+    const recentResponses = mockResponses
+        .map((r) => {
+            const responses = r.responses as unknown as Record<string, string>;
+            return {
+                id: r.id,
+                name: responses['default_name'] ?? 'Anonymous',
+                comment: responses['q2'] ?? '',
+                submittedAt: r.submittedAt,
+            };
+        })
+        .sort((a, b) => b.submittedAt.getTime() - a.submittedAt.getTime());
 
     const [topServices, setTopServices] = useState<Service[]>([]);
 
@@ -83,7 +65,7 @@ const Dashboard: React.FC = () => {
                         Welcome back! Here&#39;s what&#39;s happening with your services.
                     </p>
                 </div>
-                <Button type="primary" onClick={() => router.push('/services')}>
+                <Button type="primary" onClick={() => router.push('/dashboard/services')}>
                     View All Services
                 </Button>
             </div>
@@ -93,29 +75,14 @@ const Dashboard: React.FC = () => {
                 <Col xs={24} sm={12} lg={6}>
                     <Card className="text-center hover:shadow-lg transition-shadow">
                         <Statistic
-                            title="Total Services"
-                            value={totalServices}
-                            prefix={<FileText className="text-blue-500" size={20} />}
-                            valueStyle={{ color: '#1890ff' }}
-                        />
-                        <div className="text-xs text-gray-500 mt-2">
-                            <TrendingUp size={12} className="inline mr-1" />
-                            +2 this month
-                        </div>
-                    </Card>
-                </Col>
-
-                <Col xs={24} sm={12} lg={6}>
-                    <Card className="text-center hover:shadow-lg transition-shadow">
-                        <Statistic
-                            title="Review Forms"
+                            title="Total Review Forms"
                             value={totalForms}
                             prefix={<MessageSquare className="text-green-500" size={20} />}
                             valueStyle={{ color: '#52c41a' }}
                         />
                         <div className="text-xs text-gray-500 mt-2">
                             <TrendingUp size={12} className="inline mr-1" />
-                            +1 this week
+                            +2 this month
                         </div>
                     </Card>
                 </Col>
@@ -134,22 +101,6 @@ const Dashboard: React.FC = () => {
                         </div>
                     </Card>
                 </Col>
-
-                <Col xs={24} sm={12} lg={6}>
-                    <Card className="text-center hover:shadow-lg transition-shadow">
-                        <Statistic
-                            title="Average Rating"
-                            value={averageRating}
-                            precision={1}
-                            prefix={<Star className="text-yellow-500" size={20} />}
-                            valueStyle={{ color: '#faad14' }}
-                        />
-                        <div className="text-xs text-gray-500 mt-2">
-                            <TrendingUp size={12} className="inline mr-1" />
-                            +0.2 this month
-                        </div>
-                    </Card>
-                </Col>
             </Row>
 
             <Row gutter={[16, 16]}>
@@ -159,7 +110,7 @@ const Dashboard: React.FC = () => {
                         title="Top Performing Services"
                         className="h-full"
                         extra={
-                            <Button type="link" onClick={() => router.push('/services')}>
+                            <Button type="link" onClick={() => router.push('/dashboard/services')}>
                                 View All <ArrowRight size={14} />
                             </Button>
                         }
@@ -188,47 +139,37 @@ const Dashboard: React.FC = () => {
                     </Card>
                 </Col>
 
-                {/* Recent Activity */}
+                {/* Recent Responses */}
                 <Col xs={24} lg={12}>
                     <Card
-                        title="Recent Activity"
+                        title="Recent Responses"
                         className="h-full"
                         extra={
-                            <Button type="link">
+                            <Button type="link" onClick={() => router.push('/dashboard/responses')}>
                                 View All <ArrowRight size={14} />
                             </Button>
                         }
                     >
                         <List
-                            dataSource={recentActivity}
+                            dataSource={recentResponses}
                             renderItem={(item) => (
                                 <List.Item className="px-0">
                                     <List.Item.Meta
                                         avatar={
-                                            item.avatar ? (
-                                                <Avatar src={item.avatar} />
-                                            ) : (
-                                                <Avatar
-                                                    className={`${
-                                                        item.type === 'response' ? 'bg-green-500' :
-                                                            item.type === 'form' ? 'bg-blue-500' : 'bg-purple-500'
-                                                    }`}
-                                                >
-                                                    {item.type === 'response' ? <MessageSquare size={16} /> :
-                                                        item.type === 'form' ? <FileText size={16} /> : <Users size={16} />}
-                                                </Avatar>
-                                            )
+                                            <Avatar className="bg-green-500">
+                                                <MessageSquare size={16} />
+                                            </Avatar>
                                         }
                                         title={
                                             <div className="flex items-center justify-between">
-                                                <span className="font-medium">{item.title}</span>
+                                                <span className="font-medium">{item.name}</span>
                                                 <span className="text-xs text-gray-500 flex items-center">
                           <Clock size={12} className="mr-1" />
-                                                    {item.time}
-                        </span>
+                                                    {item.submittedAt.toLocaleDateString()}
+                                                </span>
                                             </div>
                                         }
-                                        description={item.description}
+                                        description={item.comment}
                                     />
                                 </List.Item>
                             )}
@@ -245,8 +186,7 @@ const Dashboard: React.FC = () => {
                             type="dashed"
                             block
                             size="large"
-                            className="h-20 flex flex-col items-center justify-center"
-                            onClick={() => router.push('/services')}
+                            onClick={() => router.push('/dashboard/services')}
                         >
                             <FileText size={24} className="mb-2" />
                             <span>Create Service</span>
@@ -257,8 +197,7 @@ const Dashboard: React.FC = () => {
                             type="dashed"
                             block
                             size="large"
-                            className="h-20 flex flex-col items-center justify-center"
-                            onClick={() => router.push('/forms')}
+                            onClick={() => router.push('/dashboard/forms')}
                         >
                             <MessageSquare size={24} className="mb-2" />
                             <span>Create Form</span>
@@ -269,8 +208,7 @@ const Dashboard: React.FC = () => {
                             type="dashed"
                             block
                             size="large"
-                            className="h-20 flex flex-col items-center justify-center"
-                            onClick={() => router.push('/responses')}
+                            onClick={() => router.push('/dashboard/responses')}
                         >
                             <Users size={24} className="mb-2" />
                             <span>View Responses</span>

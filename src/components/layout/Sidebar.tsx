@@ -2,10 +2,8 @@ import React from 'react';
 import { Layout, Menu } from 'antd';
 import {
     LayoutDashboard,
-    Settings,
     FileText,
     BarChart3,
-    Users,
     Layers
 } from 'lucide-react';
 import {usePathname, useRouter} from "next/navigation";
@@ -42,16 +40,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
             key: '/dashboard/responses',
             icon: <BarChart3 size={18} />,
             label: 'Responses',
-        },
-        {
-            key: '/dashboard/customers',
-            icon: <Users size={18} />,
-            label: 'Customers',
-        },
-        {
-            key: '/dashboard/settings',
-            icon: <Settings size={18} />,
-            label: 'Settings',
         },
     ];
 

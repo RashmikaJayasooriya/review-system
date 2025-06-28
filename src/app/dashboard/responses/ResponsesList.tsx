@@ -42,7 +42,7 @@ export default function ResponsesList({ initialReviews }: Props) {
             title: '#',
             dataIndex: 'No',
             key: 'No',
-            render: (_: any, __: any, index: number) => index + 1,
+            render: (_: unknown, __: unknown, index: number) => index + 1,
             width: 50,
         },
         {
