@@ -28,6 +28,20 @@ export interface ReviewForm {
   responsesCount: number;
 }
 
+export interface Review {
+  id: string;
+  formId: string;
+  review: string;
+  name: string;
+  email: string;
+  createdAt: Date;
+}
+
+export interface ReviewWithForm extends Review {
+  formTitle: string;
+  serviceName: string;
+}
+
 export interface FormResponse {
   id: string;
   formId: string;
