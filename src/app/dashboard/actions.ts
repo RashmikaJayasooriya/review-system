@@ -3,6 +3,7 @@ import connectToDatabase from "@/lib/db";
 import ServiceModel from "@/models/Service";
 import ReviewFormModel from "@/models/ReviewForm";
 import ReviewModel from "@/models/Review";
+import mongoose from "mongoose";
 
 export interface DashboardService {
     id: string;
@@ -37,7 +38,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     ]);
 
     const services = await ServiceModel.find().lean<{
-        _id: typeof ServiceModel.schema.types.ObjectId;
+        _id: mongoose.Types.ObjectId;
         name: string;
         description?: string;
         createdAt: Date;
@@ -67,7 +68,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     const recentReviewsRaw = await ReviewModel.find()
         .sort({ createdAt: -1 })
         .limit(5)
-        .lean<{ _id: typeof ReviewModel.schema.types.ObjectId; name: string; review: string; createdAt: Date }[]>();
+        .lean<{ _id: mongoose.Types.ObjectId; name: string; review: string; createdAt: Date }[]>();
 
     const recentResponses: RecentResponse[] = recentReviewsRaw.map(r => ({
         id: r._id.toString(),

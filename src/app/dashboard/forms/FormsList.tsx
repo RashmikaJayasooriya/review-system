@@ -1,12 +1,12 @@
 'use client';
-import {Row, Col, Empty, Tag, message} from 'antd';
+import {Row, Col, Empty, Tag, message, Modal} from 'antd';
 import { useSearchFilter } from './SearchFilterContext';
 import FormCard from '@/components/forms/FormCard';
 import { ReviewForm } from '@/types';
 import {useMemo, useState} from 'react';
 import FormPreviewModal from "@/components/forms/FormPreviewModal";
 import EditFormModal from "@/components/forms/EditFormModal";
-import {getForms, toggleFormStatus} from "@/app/dashboard/forms/actions";
+import {deleteForm, getForms, toggleFormStatus} from "@/app/dashboard/forms/actions";
 
 interface DTO extends Omit<ReviewForm, 'createdAt'> {
     createdAt: string;

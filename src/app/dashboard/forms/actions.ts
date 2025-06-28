@@ -15,7 +15,7 @@ export async function getForms(): Promise<ReviewForm[]> {
             serviceId: mongoose.Types.ObjectId;
             title: string;
             description?: string;
-            questions: unknown[];
+            questions: ({ _id?: mongoose.Types.ObjectId } & Question)[];
             shareableLink: string;
             createdAt: Date;
             isActive: boolean;
@@ -28,8 +28,8 @@ export async function getForms(): Promise<ReviewForm[]> {
         serviceId: f.serviceId.toString(),
         title: f.title,
         description: f.description ?? '',
-        questions: f.questions.map(q => {
-            const { _id, ...rest } = q;
+        questions: f.questions.map((q) => {
+            const { _id, ...rest } = q as { _id?: mongoose.Types.ObjectId } & Question;
             return { ...rest, id: rest.id ?? String(_id) };
         }),
         shareableLink: f.shareableLink,
