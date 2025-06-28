@@ -3,6 +3,7 @@ import { SearchFilterProvider } from './SearchContext';
 import ResponsesHeader from './ResponsesHeader';
 import ResponsesWrapper from './ResponsesWrapper';
 import { getForms } from '../forms/actions';
+import ResponsesSkeleton from "@/components/responses/ResponsesSkeleton";
 
 export default async function ResponsesPage() {
     const raw = await getForms();
@@ -10,7 +11,7 @@ export default async function ResponsesPage() {
     return (
         <SearchFilterProvider>
             <ResponsesHeader forms={forms} />
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<ResponsesSkeleton/>}>
                 <ResponsesWrapper />
             </Suspense>
         </SearchFilterProvider>
