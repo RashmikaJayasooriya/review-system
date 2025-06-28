@@ -31,9 +31,10 @@ export interface ReviewForm {
 export interface FormResponse {
   id: string;
   formId: string;
-  responses: Record<string, string>;
+  name: string;
+  email: string;
+  responses: string;
   submittedAt: Date;
-  rating?: number;
 }
 
 export interface User {
