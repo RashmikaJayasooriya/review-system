@@ -37,7 +37,8 @@ export default function ReviewFormViewer({ form }: Props) {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 w-full grid md:grid-cols-2 gap-8">
+            <div className="space-y-5 p-6 rounded-lg shadow-md bg-gray-200">
             {form.questions.map((q) => (
                 <div key={q.id} className="space-y-1">
                     <label className="block font-medium text-gray-700">
@@ -70,17 +71,20 @@ export default function ReviewFormViewer({ form }: Props) {
             <Button type="primary" loading={loading} onClick={generateReviews}>
                 Create Review
             </Button>
+            </div>
 
-            {reviews.length > 0 && (
-                <div className="mt-4 space-y-2">
-                    <h3 className="font-medium">Review Variations</h3>
+            <div>
+            {/*{reviews.length > 0 && (*/}
+                <div className="mt-4 space-y-2 p-4 rounded-lg">
+                    <h3 className="font-medium">Generated Review Variations</h3>
                     <ul className="list-disc pl-6 space-y-1">
                         {reviews.map((r, i) => (
                             <li key={i}>{r}</li>
                         ))}
                     </ul>
                 </div>
-            )}
+            {/*)}*/}
+            </div>
         </div>
     );
 }

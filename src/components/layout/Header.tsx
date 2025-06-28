@@ -6,11 +6,10 @@ import type { MenuProps } from 'antd';
 import { mockUser} from "@/data/mockData";
 
 interface HeaderProps {
-  collapsed: boolean;
   onToggle: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ collapsed, onToggle }) => {
+const Header: React.FC<HeaderProps> = ({ onToggle }) => {
   const [searchValue, setSearchValue] = useState('');
 
   const userMenuItems: MenuProps['items'] = [

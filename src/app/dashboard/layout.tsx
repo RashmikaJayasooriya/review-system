@@ -40,7 +40,7 @@ export default function AdminLayout({
         <Layout className="h-screen bg-gray-50">
             <Sidebar collapsed={collapsed} onCollapse={setCollapsed} />
             <Layout className="transition-all duration-200">
-                <Header collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
+                <Header onToggle={() => setCollapsed(!collapsed)} />
                 <Content className="p-6 bg-gray-50">
                     <div className="max-w-7xl mx-auto">
                         {children}

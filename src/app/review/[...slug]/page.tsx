@@ -14,10 +14,10 @@ export default async function ReviewFormPage({ params }: { params: Params }) {
         notFound();
     }
     return (
-        <div className="max-w-5xl mx-auto p-6 space-y-4">
+        <div className="w-full mx-auto p-6 space-y-4">
             <h1 className="text-2xl font-bold mb-4">{form.title}</h1>
             {form.description && <p className="text-gray-600 mb-6">{form.description}</p>}
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="">
                 <ReviewFormViewer form={form}/>
             </div>
         </div>

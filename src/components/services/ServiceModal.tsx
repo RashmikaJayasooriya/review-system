@@ -40,7 +40,7 @@ const ServiceModal: React.FC<ServiceModalProps> = ({
     try {
       const values = await form.validateFields();
       onSubmit(values);
-    } catch (error) {
+    } catch {
       message.error('Please fill in all required fields');
     }
   };

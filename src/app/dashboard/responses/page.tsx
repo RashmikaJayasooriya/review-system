@@ -105,7 +105,7 @@ const Responses: React.FC = () => {
             title: 'Actions',
             key: 'actions',
             width: 120,
-            render: (record: FormResponse) => (
+            render: () => (
                 <Space>
                     <Button type="text" size="small" icon={<Eye size={14} />}>
                         View

@@ -78,7 +78,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     },
   ];
 
-  const handleMenuClick = (e: any) => {
+  const handleMenuClick = (e: { key: string }) => {
     onMenuSelect?.(e.key);
     if (window.innerWidth < 768) {
       setMobileMenuVisible(false);
