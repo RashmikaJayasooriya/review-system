@@ -3,7 +3,7 @@ import { Header as AntHeader } from 'antd/es/layout/layout';
 import { Input, Avatar, Dropdown, Badge, Button } from 'antd';
 import { Search, Menu, Bell, Settings, LogOut, User } from 'lucide-react';
 import type { MenuProps } from 'antd';
-import { mockUser} from "@/data/mockData";
+import { useSession, signOut } from "next-auth/react";
 
 interface HeaderProps {
   onToggle: () => void;
@@ -11,6 +11,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onToggle }) => {
   const [searchValue, setSearchValue] = useState('');
+  const { data: session } = useSession();
 
   const userMenuItems: MenuProps['items'] = [
     {
@@ -23,9 +24,7 @@ const Header: React.FC<HeaderProps> = ({ onToggle }) => {
       icon: <Settings size={16} />,
       label: 'Account Settings',
     },
-    {
-      type: 'divider',
-    },
+    { type: 'divider' },
     {
       key: 'logout',
       icon: <LogOut size={16} />,
@@ -33,6 +32,10 @@ const Header: React.FC<HeaderProps> = ({ onToggle }) => {
       danger: true,
     },
   ];
+
+  const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
+    if (key === 'logout') signOut();
+  };
 
   return (
     <AntHeader className="bg-white shadow-sm border-b border-gray-200 px-4 flex items-center justify-between h-16">
@@ -66,23 +69,23 @@ const Header: React.FC<HeaderProps> = ({ onToggle }) => {
         </Badge>
 
         <Dropdown
-          menu={{ items: userMenuItems }}
+            menu={{ items: userMenuItems, onClick: handleMenuClick }}
           trigger={['click']}
           placement="bottomRight"
         >
           <div className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
             <Avatar
-              src={mockUser.avatar}
+                src={session?.user?.image ?? undefined}
               size={32}
               className="border-2 border-blue-100"
             />
             <div className="hidden sm:block text-left">
               <div className="text-sm font-medium text-gray-900">
-                {mockUser.name}
+                {session?.user?.name ?? 'User'}
               </div>
-              <div className="text-xs text-gray-500">
-                {mockUser.role}
-              </div>
+              {session?.user?.email && (
+                  <div className="text-xs text-gray-500">{session.user.email}</div>
+              )}
             </div>
           </div>
         </Dropdown>
