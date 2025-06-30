@@ -1,6 +1,6 @@
 import '@ant-design/v5-patch-for-react-19';
 import "./globals.css";
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, App as AntdApp } from 'antd';
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import React from "react";
 
@@ -21,7 +21,9 @@ export default function RootLayout({
             },
           }}
         >
-          {children}
+            <AntdApp>
+                {children}
+            </AntdApp>
         </ConfigProvider>
         </AntdRegistry>
       </body>

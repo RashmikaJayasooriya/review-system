@@ -1,5 +1,5 @@
 'use client';
-import {Col, Empty, message, Modal, Row, Tag} from 'antd';
+import {Col, Empty, Row, Tag, App as AntdApp} from 'antd';
 import {useSearchFilter} from './SearchFilterContext';
 import FormCard from '@/components/forms/FormCard';
 import {ReviewForm} from '@/types';
@@ -18,6 +18,7 @@ interface Props {
 
 export default function FormsList({ initialForms }: Props) {
     const { searchTerm, serviceId, status } = useSearchFilter();
+    const { modal, message } = AntdApp.useApp();
 
     useEffect(() => {
         setForms(initialForms);
@@ -45,7 +46,7 @@ export default function FormsList({ initialForms }: Props) {
     };
 
     const handleDelete = (id: string) => {
-        Modal.confirm({
+        modal.confirm({
             title: 'Delete form?',
             content: 'This action cannot be undone.',
             okText: 'Delete',
