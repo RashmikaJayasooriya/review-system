@@ -7,6 +7,7 @@ import { useSearchSort } from './SearchSortContext';
 import ServiceCard from '@/components/services/ServiceCard';
 
 type ServiceDTO = {
+    userId: string;
     id: string;
     name: string;
     description: string;
