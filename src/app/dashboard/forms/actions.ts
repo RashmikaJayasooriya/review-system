@@ -88,7 +88,7 @@ export async function createForm(
         serviceId,
         // questions: [],
         questions,
-        shareableLink: `https://forms.company.com/${Date.now()}`,
+        shareableLink: `${process.env.NEXTAUTH_URL}/${Date.now()}`,
         isActive: true,
     });
     revalidatePath('/dashboard/forms');
@@ -168,6 +168,7 @@ export async function getFormByLink(link: string): Promise<ReviewForm | null> {
     const f = await ReviewFormModel.findOne({ shareableLink: link })
         .lean<{
             _id: mongoose.Types.ObjectId;
+            userId: string;
             serviceId: mongoose.Types.ObjectId;
             title: string;
             description?: string;
@@ -179,6 +180,7 @@ export async function getFormByLink(link: string): Promise<ReviewForm | null> {
         } | null>();
     if (!f) return null;
     return {
+        userId: f.userId,
         id: f._id.toString(),
         serviceId: f.serviceId.toString(),
         title: f.title,

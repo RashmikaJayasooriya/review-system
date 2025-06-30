@@ -3,7 +3,7 @@ import {Col, Empty, message, Modal, Row, Tag} from 'antd';
 import {useSearchFilter} from './SearchFilterContext';
 import FormCard from '@/components/forms/FormCard';
 import {ReviewForm} from '@/types';
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import FormPreviewModal from "@/components/forms/FormPreviewModal";
 import EditFormModal from "@/components/forms/EditFormModal";
 import {deleteForm, getForms, toggleFormStatus} from "@/app/dashboard/forms/actions";
@@ -18,6 +18,10 @@ interface Props {
 
 export default function FormsList({ initialForms }: Props) {
     const { searchTerm, serviceId, status } = useSearchFilter();
+
+    useEffect(() => {
+        setForms(initialForms);
+    }, [initialForms]);
     const [forms, setForms] = useState<DTO[]>(initialForms);
     const [editingForm, setEditingForm] = useState<ReviewForm | null>(null);
     const [showEdit, setShowEdit] = useState(false);
