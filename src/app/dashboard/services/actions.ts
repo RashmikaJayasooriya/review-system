@@ -58,3 +58,42 @@ export async function createService(
     revalidatePath('/dashboard/services');
     return { success: true };
 }
+
+interface UpdateServiceState {
+    success?: boolean;
+    error?: string;
+}
+
+export async function updateService(
+    _prevState: UpdateServiceState,
+    formData: FormData
+): Promise<UpdateServiceState> {
+    const serviceId = formData.get('serviceId');
+    const name = formData.get('name');
+    const description = formData.get('description');
+    if (!serviceId || typeof serviceId !== 'string') {
+        return { error: 'Invalid service id' };
+    }
+    if (!name || typeof name !== 'string') {
+        return { error: 'Name is required' };
+    }
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) return { error: 'Unauthorized' };
+
+    await connectToDatabase();
+    await ServiceModel.findOneAndUpdate({ _id: serviceId, userId }, { name, description });
+    revalidatePath('/dashboard/services');
+    return { success: true };
+}
+
+export async function deleteService(serviceId: string) {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) return { error: 'Unauthorized' };
+
+    await connectToDatabase();
+    await ServiceModel.findOneAndDelete({ _id: serviceId, userId });
+    revalidatePath('/dashboard/services');
+    return { success: true };
+}
