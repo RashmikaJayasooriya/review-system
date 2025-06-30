@@ -10,6 +10,7 @@ export interface IQuestion {
 }
 
 export interface IReviewForm extends Document {
+    userId: string;
     serviceId: mongoose.Types.ObjectId;
     title: string;
     description?: string;
@@ -30,6 +31,7 @@ const QuestionSchema = new Schema<IQuestion>({
 });
 
 const ReviewFormSchema = new Schema<IReviewForm>({
+    userId: { type: String, required: true },
     serviceId: { type: Schema.Types.ObjectId, ref: 'Service', required: true },
     title: { type: String, required: true },
     description: String,

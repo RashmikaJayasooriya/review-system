@@ -5,10 +5,18 @@ import ReviewFormModel from '@/models/ReviewForm';
 import ServiceModel from '@/models/Service';
 import { ReviewWithForm } from '@/types';
 import mongoose from 'mongoose';
+import { auth } from '@/auth';
 
 export async function getReviews(): Promise<ReviewWithForm[]> {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) return [];
+
+    // find forms created by the user
+    const forms = await ReviewFormModel.find({ userId }).lean<{ _id: mongoose.Types.ObjectId }[]>();
+
     await connectToDatabase();
-    const reviews = await ReviewModel.find()
+    const reviews = await ReviewModel.find({ formId: { $in: forms.map(f => f._id) } })
         .sort({ createdAt: -1 })
         .populate({
             path: 'formId',

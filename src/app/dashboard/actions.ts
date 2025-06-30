@@ -3,6 +3,7 @@ import connectToDatabase from "@/lib/db";
 import ServiceModel from "@/models/Service";
 import ReviewFormModel from "@/models/ReviewForm";
 import ReviewModel from "@/models/Review";
+import { auth } from "@/auth";
 import mongoose from "mongoose";
 
 export interface DashboardService {
@@ -30,14 +31,20 @@ export interface DashboardData {
 }
 
 export async function getDashboardData(): Promise<DashboardData> {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) {
+        return { totalForms: 0, totalResponses: 0, topServices: [], recentResponses: [] };
+    }
+
     await connectToDatabase();
 
     const [totalForms, totalResponses] = await Promise.all([
-        ReviewFormModel.countDocuments(),
-        ReviewModel.countDocuments(),
+        ReviewFormModel.countDocuments({ userId }),
+        ReviewModel.countDocuments({ userId }),
     ]);
 
-    const services = await ServiceModel.find().lean<{
+    const services = await ServiceModel.find({ userId }).lean<{
         _id: mongoose.Types.ObjectId;
         name: string;
         description?: string;
@@ -46,10 +53,10 @@ export async function getDashboardData(): Promise<DashboardData> {
 
     const serviceData: DashboardService[] = [];
     for (const s of services) {
-        const forms = await ReviewFormModel.find({ serviceId: s._id }, '_id').lean<{ _id: string }[]>();
+        const forms = await ReviewFormModel.find({ serviceId: s._id, userId }, '_id').lean<{ _id: string }[]>();
         const formIds = forms.map(f => f._id);
         const [formsCount, responsesCount] = await Promise.all([
-            ReviewFormModel.countDocuments({ serviceId: s._id }),
+            ReviewFormModel.countDocuments({ serviceId: s._id, userId }),
             formIds.length > 0 ? ReviewModel.countDocuments({ formId: { $in: formIds } }) : Promise.resolve(0),
         ]);
         serviceData.push({
@@ -65,7 +72,7 @@ export async function getDashboardData(): Promise<DashboardData> {
 
     serviceData.sort((a, b) => b.responsesCount - a.responsesCount);
 
-    const recentReviewsRaw = await ReviewModel.find()
+    const recentReviewsRaw = await ReviewModel.find({ userId })
         .sort({ createdAt: -1 })
         .limit(5)
         .lean<{ _id: mongoose.Types.ObjectId; name: string; review: string; createdAt: Date }[]>();

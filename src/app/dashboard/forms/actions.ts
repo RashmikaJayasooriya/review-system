@@ -4,14 +4,20 @@ import ReviewFormModel from '@/models/ReviewForm';
 import { revalidatePath } from 'next/cache';
 import {Question, ReviewForm} from '@/types';
 import mongoose from 'mongoose';
+import { auth } from '@/auth';
 
 export async function getForms(): Promise<ReviewForm[]> {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) return [];
+
     await connectToDatabase();
     // await new Promise(resolve => setTimeout(resolve, 5000));
-    const forms = await ReviewFormModel.find()
+    const forms = await ReviewFormModel.find({ userId })
         .sort({ createdAt: -1 })
         .lean<{
             _id: mongoose.Types.ObjectId;
+            userId: string;
             serviceId: mongoose.Types.ObjectId;
             title: string;
             description?: string;
@@ -24,6 +30,7 @@ export async function getForms(): Promise<ReviewForm[]> {
 
 
     return forms.map((f) => ({
+        userId: f.userId,
         id: f._id.toString(),
         serviceId: f.serviceId.toString(),
         title: f.title,
@@ -69,8 +76,13 @@ export async function createForm(
         }
     }
 
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) return { error: 'Unauthorized' };
+
     await connectToDatabase();
     await ReviewFormModel.create({
+        userId,
         title,
         description,
         serviceId,
@@ -115,8 +127,12 @@ export async function updateForm(
         }
     }
 
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) return { error: 'Unauthorized' };
+
     await connectToDatabase();
-    await ReviewFormModel.findByIdAndUpdate(formId, {
+    await ReviewFormModel.findOneAndUpdate({ _id: formId, userId }, {
         title,
         description,
         questions,
@@ -126,15 +142,23 @@ export async function updateForm(
 }
 
 export async function toggleFormStatus(formId: string, isActive: boolean) {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) return { error: 'Unauthorized' };
+
     await connectToDatabase();
-    await ReviewFormModel.findByIdAndUpdate(formId, { isActive });
+    await ReviewFormModel.findOneAndUpdate({ _id: formId, userId }, { isActive });
     revalidatePath('/dashboard/forms');
     return { success: true };
 }
 
 export async function deleteForm(formId: string) {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) return { error: 'Unauthorized' };
+
     await connectToDatabase();
-    await ReviewFormModel.findByIdAndDelete(formId);
+    await ReviewFormModel.findOneAndDelete({ _id: formId, userId });
     revalidatePath('/dashboard/forms');
     return { success: true };
 }

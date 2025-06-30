@@ -1,4 +1,5 @@
 export interface Service {
+  userId: string;
   id: string;
   name: string;
   description?: string;
@@ -17,6 +18,7 @@ export interface Question {
 }
 
 export interface ReviewForm {
+  userId: string;
   id: string;
   serviceId: string;
   title: string;

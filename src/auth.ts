@@ -51,12 +51,55 @@ export const authConfig = {
         })
     ],
     session: { strategy: "jwt" },
+//     callbacks: {
+//         authorized({ auth }) {
+//             return !!auth?.user;
+//         },
+//     },
+// } satisfies NextAuthConfig;
     callbacks: {
+        /**
+         * 1) Persist anything you need into the JWT
+         */
+        async jwt({ token, user }) {
+            // `user` is only defined on first sign-in
+            if (user) {
+                token.id           = user.id;
+                token.accessToken  = (user as any).accessToken;
+                token.refreshToken = (user as any).refreshToken;
+                token.expires_at   = (user as any).expires_at;
+            }
+            return token;
+        },
+
+        /**
+         * 2) Expose what the client/server should receive in `session`
+         */
+        async session({ session, token }) {
+            session.user = {
+                ...(session.user ?? {}),
+                id:   token.id as string,
+                name: token.name as string,
+                email: token.email as string
+            };
+
+            // Optional: surface the access token if your UI/API needs it
+            (session as any).accessToken  = token.accessToken;
+            (session as any).refreshToken = token.refreshToken;
+            (session as any).expires_at   = token.expires_at;
+
+            return session;
+        },
+
+        /**
+         * Your existing route-protection logic stays the same
+         */
         authorized({ auth }) {
             return !!auth?.user;
-        },
-    },
+        }
+    }
 } satisfies NextAuthConfig;
+
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
 
