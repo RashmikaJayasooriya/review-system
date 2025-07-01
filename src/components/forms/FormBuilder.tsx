@@ -337,7 +337,7 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
         ...values,
         serviceId,
         questions: questions.map((q, index) => ({ ...q, order: index + 1 })),
-        shareableLink: `https://forms.company.com/${Date.now()}`,
+        shareableLink: `${process.env.NEXTAUTH_URL}/review/${Date.now()}`,
         isActive: true,
       };
 

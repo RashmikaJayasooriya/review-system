@@ -1,12 +1,13 @@
 import React from 'react';
-import { Layout, Menu } from 'antd';
+import {Layout, Menu} from 'antd';
 import {
     LayoutDashboard,
     FileText,
     BarChart3,
-    Layers
+    Layers, LogOut
 } from 'lucide-react';
 import {usePathname, useRouter} from "next/navigation";
+import {signOut} from "next-auth/react";
 
 const { Sider } = Layout;
 
@@ -96,18 +97,15 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
 
                 {/* Footer Section */}
                 {!collapsed && (
+                    // sign out link with icon
                     <div className="p-4 border-t border-gray-200">
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg">
-                            <h4 className="text-sm font-semibold text-gray-800 mb-1">
-                                Need Help?
-                            </h4>
-                            <p className="text-xs text-gray-600 mb-2">
-                                Contact our support team
-                            </p>
-                            <button className="text-xs text-blue-600 hover:text-blue-700 font-medium">
-                                Get Support →
-                            </button>
-                        </div>
+                        <button
+                            onClick={() => signOut()}
+                            className="w-full text-start flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors"
+                        >
+                            <LogOut />
+                            Sign Out
+                        </button>
                     </div>
                 )}
             </div>
