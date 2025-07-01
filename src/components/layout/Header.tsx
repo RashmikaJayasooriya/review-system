@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Header as AntHeader } from 'antd/es/layout/layout';
-import { Input, Avatar, Dropdown, Badge, Button } from 'antd';
-import { Search, Menu, Bell, Settings, LogOut, User } from 'lucide-react';
+import { Input, Avatar, Dropdown, Button } from 'antd';
+import { Search, Menu, Settings, LogOut, User } from 'lucide-react';
 import type { MenuProps } from 'antd';
 import { useSession, signOut } from "next-auth/react";
 
@@ -38,7 +38,10 @@ const Header: React.FC<HeaderProps> = ({ onToggle }) => {
   };
 
   return (
-    <AntHeader className="bg-white shadow-sm border-b border-gray-200 px-4 flex items-center justify-between h-16">
+      <AntHeader
+          style={{ backgroundColor: "#ffffff" }}
+          className="bg-white shadow-sm border-b border-gray-200 px-4 flex items-center justify-between h-16"
+      >
       <div className="flex items-center gap-4">
         <Button
           type="text"
@@ -60,27 +63,19 @@ const Header: React.FC<HeaderProps> = ({ onToggle }) => {
       </div>
 
       <div className="flex items-center gap-4">
-        <Badge count={3} size="small">
-          <Button
-            type="text"
-            icon={<Bell size={18} />}
-            className="flex items-center justify-center"
-          />
-        </Badge>
-
         <Dropdown
             menu={{ items: userMenuItems, onClick: handleMenuClick }}
           trigger={['click']}
           placement="bottomRight"
         >
-          <div className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
+          <div className="flex items-center gap-3 cursor-pointer px-3 py-2 rounded-lg transition-colors">
             <Avatar
-                src={session?.user?.image ?? undefined}
-              size={32}
-              className="border-2 border-blue-100"
+                src={session?.user?.image ?? <User/>}
+              size={30}
+                style={{ backgroundColor: '#353030' }}
             />
-            <div className="hidden sm:block text-left">
-              <div className="text-sm font-medium text-gray-900">
+            <div className="hidden sm:block text-left hover:bg-gray-50 hover:text-black">
+              <div className="text-sm font-medium ">
                 {session?.user?.name ?? 'User'}
               </div>
               {session?.user?.email && (

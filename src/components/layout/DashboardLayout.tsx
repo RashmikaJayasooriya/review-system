@@ -15,7 +15,8 @@ import {
   SearchOutlined,
   BellOutlined
 } from '@ant-design/icons';
-import { mockUser } from '@/data/mockData';
+import {useSession} from "next-auth/react";
+import {User} from "lucide-react";
 
 const { Header, Sider, Content } = Layout;
 
@@ -32,6 +33,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
+  const { data: session } = useSession();
 
   const menuItems = [
     {
@@ -98,7 +100,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         collapsedWidth={80}
       >
         <div className="h-16 flex items-center justify-center border-b border-gray-200">
-          <div className="text-xl font-bold text-blue-600">
+          <div className="text-xl font-bold ">
             {collapsed ? 'RS' : 'ReviewSystem'}
           </div>
         </div>
@@ -117,7 +119,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setMobileMenuVisible(false)} />
         <div className="absolute left-0 top-0 bottom-0 w-64 bg-white">
           <div className="h-16 flex items-center justify-center border-b border-gray-200">
-            <div className="text-xl font-bold text-blue-600">ReviewSystem</div>
+            <div className="text-xl font-bold ">ReviewSystem</div>
           </div>
           <Menu
             theme="light"
@@ -162,10 +164,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               trigger={['click']}
             >
               <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded">
-                <Avatar src={mockUser.avatar} size="small" />
+                <Avatar src={session?.user?.image ?? <User/>} size="small" />
                 <div className="hidden sm:block">
-                  <div className="text-sm font-medium">{mockUser.name}</div>
-                  <div className="text-xs text-gray-500">{mockUser.role}</div>
+                  <div className="text-sm font-medium">{session?.user?.name}</div>
+                  <div className="text-xs text-gray-500">{session?.user?.email}</div>
                 </div>
               </div>
             </Dropdown>
