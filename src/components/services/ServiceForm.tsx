@@ -25,6 +25,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
         form.setFieldsValue({
           name: service.name,
           description: service.description,
+          googleReviewLink: service.googleReviewLink,
         });
       } else {
         form.resetFields();
@@ -93,6 +94,10 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
             showCount
             maxLength={500}
           />
+        </Form.Item>
+
+        <Form.Item name="googleReviewLink" label="Google Review Link">
+          <Input placeholder="https://g.page/your-business" size="large" />
         </Form.Item>
       </Form>
     </Modal>

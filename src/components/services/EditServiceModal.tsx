@@ -29,6 +29,7 @@ export default function EditServiceModal({ open, service, onClose }: Props) {
         fd.append('serviceId', service.id);
         if (values.name) fd.append('name', values.name);
         if (values.description) fd.append('description', values.description);
+        if (values.googleReviewLink) fd.append('googleReviewLink', values.googleReviewLink);
         startTransition(() => {
             formAction(fd);
         });

@@ -13,6 +13,7 @@ type ServiceDTO = {
     id: string;
     name: string;
     description: string;
+    googleReviewLink?: string;
     createdAt: string;          // still string here
     responsesCount: number;
     formsCount: number;
@@ -76,6 +77,7 @@ export default function ServicesList({ initialServices }: Props) {
             id: s.id,
             name: s.name,
             description: s.description ?? '',
+            googleReviewLink: s.googleReviewLink,
             createdAt: s.createdAt.toISOString(),
             responsesCount: s.responsesCount,
             formsCount: s.formsCount,

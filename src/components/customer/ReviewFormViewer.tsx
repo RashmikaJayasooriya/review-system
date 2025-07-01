@@ -105,7 +105,21 @@ export default function ReviewFormViewer({ form }: Props) {
                             </Space>
                         </Radio.Group>
 
-                        {state.success && <div className="text-green-600">Saved!</div>}
+                        {state.success && (
+                            <div className="text-green-600 space-y-2">
+                                <div>Saved!</div>
+                                {form.googleReviewLink && (
+                                    <a
+                                        href={form.googleReviewLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="underline text-blue-600"
+                                    >
+                                        Leave a Google Review
+                                    </a>
+                                )}
+                            </div>
+                        )}
                         {state.error && <div className="text-red-500">{state.error}</div>}
 
                         <Button

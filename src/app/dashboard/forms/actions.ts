@@ -1,6 +1,7 @@
 "use server";
 import connectToDatabase from '@/lib/db';
 import ReviewFormModel from '@/models/ReviewForm';
+import ServiceModel from '@/models/Service';
 import { revalidatePath } from 'next/cache';
 import {Question, ReviewForm} from '@/types';
 import mongoose from 'mongoose';
@@ -179,10 +180,12 @@ export async function getFormByLink(link: string): Promise<ReviewForm | null> {
             responsesCount: number;
         } | null>();
     if (!f) return null;
+    const service = await ServiceModel.findById(f.serviceId).lean<{ googleReviewLink?: string } | null>();
     return {
         userId: f.userId,
         id: f._id.toString(),
         serviceId: f.serviceId.toString(),
+        googleReviewLink: service?.googleReviewLink,
         title: f.title,
         description: f.description ?? '',
         questions: f.questions.map((q) => {

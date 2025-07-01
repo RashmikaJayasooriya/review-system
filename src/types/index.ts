@@ -3,6 +3,7 @@ export interface Service {
   id: string;
   name: string;
   description?: string;
+  googleReviewLink?: string;
   createdAt: Date;
   formsCount: number;
   responsesCount: number;
@@ -21,6 +22,7 @@ export interface ReviewForm {
   userId: string;
   id: string;
   serviceId: string;
+  googleReviewLink?: string;
   title: string;
   description?: string;
   questions: Question[];

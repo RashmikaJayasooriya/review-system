@@ -72,6 +72,12 @@ export default function ResponsesList({ initialReviews }: Props) {
             title: 'Review',
             dataIndex: 'review',
             key: 'review',
+            //scroll: { y: 100 },
+            render: (review: string) => (
+                <div className="max-w-xs overflow-y-scroll " style={{ maxHeight: '100px' }}>
+                    {review}
+                </div>
+            ),
         },
         {
             title: 'Submitted',

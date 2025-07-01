@@ -57,6 +57,16 @@ export default function CreateServiceModal({ open, onClose, onSuccess }: Props) 
                     />
                 </div>
 
+                <div>
+                    <label htmlFor="googleReviewLink">Google Review Link (Optional)</label>
+                    <Input
+                        id="googleReviewLink"
+                        name="googleReviewLink"
+                        placeholder="https://g.page/your-business"
+                        size="large"
+                    />
+                </div>
+
                 <div className="flex justify-end gap-2 pt-2">
                     <Button onClick={onClose}>Cancel</Button>
 

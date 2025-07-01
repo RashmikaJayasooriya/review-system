@@ -4,6 +4,7 @@ export interface IService extends Document {
   userId: string;
   name: string;
   description?: string;
+  googleReviewLink?: string;
   createdAt: Date;
 }
 
@@ -11,6 +12,7 @@ const ServiceSchema = new Schema<IService>({
   userId: { type: String, required: true },
   name: { type: String, required: true },
   description: { type: String },
+  googleReviewLink: { type: String },
   createdAt: { type: Date, default: Date.now },
 });
 

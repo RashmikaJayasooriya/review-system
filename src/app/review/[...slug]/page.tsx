@@ -8,7 +8,7 @@ interface Params {
 
 export default async function ReviewFormPage({ params }: { params: Params }) {
     const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
-    const link = `https://forms.company.com/${slug}`;
+    const link = `http://localhost:3000/${slug}`;
     const form = await getFormByLink(link);
     if (!form || !form.isActive) {
         notFound();

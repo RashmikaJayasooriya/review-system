@@ -21,6 +21,7 @@ export async function getServices(): Promise<Service[]> {
             userId: string;
         name: string;
         description?: string;
+            googleReviewLink?: string;
         createdAt: Date;
     }[]>();
     return services.map((s) => ({
@@ -28,6 +29,7 @@ export async function getServices(): Promise<Service[]> {
         id: s._id.toString(),
         name: s.name,
         description: s.description ?? '',
+        googleReviewLink: s.googleReviewLink,
         createdAt: s.createdAt,
         formsCount: 0,
         responsesCount: 0,
@@ -45,6 +47,7 @@ export async function createService(
 ): Promise<CreateServiceState> {
     const name = formData.get('name');
     const description = formData.get('description');
+    const googleReviewLink = formData.get('googleReviewLink');
     if (!name || typeof name !== 'string') {
         return { error: 'Name is required' };
     }
@@ -54,7 +57,7 @@ export async function createService(
     if (!userId) return { error: 'Unauthorized' };
 
     await connectToDatabase();
-    await ServiceModel.create({ name, description, userId });
+    await ServiceModel.create({ name, description, googleReviewLink, userId });
     revalidatePath('/dashboard/services');
     return { success: true };
 }
@@ -71,6 +74,7 @@ export async function updateService(
     const serviceId = formData.get('serviceId');
     const name = formData.get('name');
     const description = formData.get('description');
+    const googleReviewLink = formData.get('googleReviewLink');
     if (!serviceId || typeof serviceId !== 'string') {
         return { error: 'Invalid service id' };
     }
@@ -82,7 +86,10 @@ export async function updateService(
     if (!userId) return { error: 'Unauthorized' };
 
     await connectToDatabase();
-    await ServiceModel.findOneAndUpdate({ _id: serviceId, userId }, { name, description });
+    await ServiceModel.findOneAndUpdate(
+        { _id: serviceId, userId },
+        { name, description, googleReviewLink }
+    );
     revalidatePath('/dashboard/services');
     return { success: true };
 }
