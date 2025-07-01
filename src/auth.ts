@@ -1,6 +1,19 @@
 import NextAuth from "next-auth";
-import type { NextAuthConfig } from "next-auth";
+import type { DefaultSession, User, NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+
+interface TokenUser extends User {
+    id: string;
+    accessToken: string;
+    refreshToken: string;
+    expires_at: number;
+}
+
+interface SessionWithToken extends DefaultSession {
+    accessToken?: string;
+    refreshToken?: string;
+    expires_at?: number;
+}
 
 export const authConfig = {
     providers: [
@@ -64,10 +77,11 @@ export const authConfig = {
         async jwt({ token, user }) {
             // `user` is only defined on first sign-in
             if (user) {
-                token.id           = user.id;
-                token.accessToken  = (user as any).accessToken;
-                token.refreshToken = (user as any).refreshToken;
-                token.expires_at   = (user as any).expires_at;
+                const tokenUser = user as TokenUser;
+                token.id           = tokenUser.id;
+                token.accessToken  = tokenUser.accessToken;
+                token.refreshToken = tokenUser.refreshToken;
+                token.expires_at   = tokenUser.expires_at;
             }
             return token;
         },
@@ -76,17 +90,18 @@ export const authConfig = {
          * 2) Expose what the client/server should receive in `session`
          */
         async session({ session, token }) {
-            session.user = {
-                ...(session.user ?? {}),
+            const sessionWithToken = session as SessionWithToken;
+            sessionWithToken.user = {
+                ...(sessionWithToken.user ?? {}),
                 id:   token.id as string,
                 name: token.name as string,
                 email: token.email as string
             };
 
             // Optional: surface the access token if your UI/API needs it
-            (session as any).accessToken  = token.accessToken;
-            (session as any).refreshToken = token.refreshToken;
-            (session as any).expires_at   = token.expires_at;
+            sessionWithToken.accessToken  = token.accessToken as string | undefined;
+            sessionWithToken.refreshToken = token.refreshToken as string | undefined;
+            sessionWithToken.expires_at   = token.expires_at as number | undefined;
 
             return session;
         },
