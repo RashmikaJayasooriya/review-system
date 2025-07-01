@@ -8,7 +8,7 @@ interface ServiceCardProps {
       userId: string;
       id: string;
       name: string;
-      description: string;
+      description?: string;
       createdAt: string;
       responsesCount: number;
       formsCount: number;
@@ -19,7 +19,7 @@ interface ServiceCardProps {
       userId: string;
       id: string;
       name: string;
-      description: string;
+      description?: string;
       createdAt: string;
       responsesCount: number;
       formsCount: number;

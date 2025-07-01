@@ -12,7 +12,7 @@ type ServiceDTO = {
     userId: string;
     id: string;
     name: string;
-    description: string;
+    description?: string;
     googleReviewLink?: string;
     createdAt: string;          // still string here
     responsesCount: number;

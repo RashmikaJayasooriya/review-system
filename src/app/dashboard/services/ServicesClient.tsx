@@ -93,7 +93,12 @@ const ServicesClient: React.FC<Props> = ({ initialServices }) => {
                 <Row gutter={[24, 24]}>
                     {filteredServices.map((service) => (
                         <Col key={service.id} xs={24} sm={12} lg={8} xl={6}>
-                            <ServiceCard service={service} onEdit={() => {}} onDelete={() => {}} onViewForms={handleViewForms} />
+                            <ServiceCard service={
+                                {
+                                    ...service,
+                                    createdAt: service.createdAt.toISOString()
+                                }
+                            } onEdit={() => {}} onDelete={() => {}} onViewForms={handleViewForms} />
                         </Col>
                     ))}
                 </Row>
