@@ -1,9 +1,17 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { Header as AntHeader } from 'antd/es/layout/layout';
-import { Input, Avatar, Dropdown, Button } from 'antd';
+import {Input, Avatar, Dropdown, Button, AutoComplete} from 'antd';
 import { Search, Menu, Settings, LogOut, User } from 'lucide-react';
 import type { MenuProps } from 'antd';
 import { useSession, signOut } from "next-auth/react";
+import {useRouter} from "next/navigation";
+
+const staticRoutes = [
+  { label: 'Dashboard', path: '/dashboard' },
+  { label: 'Services', path: '/dashboard/services' },
+  { label: 'Review Forms', path: '/dashboard/forms' },
+  { label: 'Responses', path: '/dashboard/responses' },
+];
 
 interface HeaderProps {
   onToggle: () => void;
@@ -11,7 +19,44 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onToggle }) => {
   const [searchValue, setSearchValue] = useState('');
+  const [options, setOptions] = useState<{ value: string; label: string }[]>([]);
   const { data: session } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    const handler = setTimeout(async () => {
+      const query = searchValue.trim();
+      if (!query) {
+        setOptions([]);
+        return;
+      }
+
+      const routeMatches = staticRoutes
+          .filter((r) => r.label.toLowerCase().includes(query.toLowerCase()))
+          .map((r) => ({ value: r.path, label: r.label }));
+
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        const data = res.ok ? await res.json() : [];
+        const apiOptions = (data as { label: string; path: string }[]).map((o) => ({
+          value: o.path,
+          label: o.label,
+        }));
+        setOptions([...routeMatches, ...apiOptions]);
+      } catch (err) {
+        console.error(err);
+        setOptions(routeMatches);
+      }
+    }, 300);
+
+    return () => clearTimeout(handler);
+  }, [searchValue]);
+
+  const handleSelect = (value: string) => {
+    router.push(value);
+    setSearchValue('');
+    setOptions([]);
+  };
 
   const userMenuItems: MenuProps['items'] = [
     {
@@ -51,14 +96,19 @@ const Header: React.FC<HeaderProps> = ({ onToggle }) => {
         />
         
         <div className="hidden md:block">
-          <Input
-            placeholder="Search services, forms..."
-            prefix={<Search size={16} className="text-gray-400" />}
+          <AutoComplete
             value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
+            options={options}
+            onSelect={handleSelect}
+            onChange={(v) => setSearchValue(v)}
             className="w-80"
-            size="middle"
-          />
+          >
+            <Input
+                placeholder="Search services, forms..."
+                prefix={<Search size={16} className="text-gray-400" />}
+                size="middle"
+            />
+          </AutoComplete>
         </div>
       </div>
 
